@@ -39,7 +39,7 @@ fun StartLoginScreen(
     var password by rememberSaveable(stateSaver = TextFieldValue.Saver){ mutableStateOf(TextFieldValue()) }
 
 
-    LazyColumn(
+    Column(
         verticalArrangement = Arrangement.SpaceAround,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -49,78 +49,66 @@ fun StartLoginScreen(
                 top = 100.dp,
                 bottom = 150.dp)
     ) {
-        item {
-            Image(
-                painter = painterResource(id = R.drawable.uos_mark),
-                contentDescription = "() 1",
-                modifier = Modifier
-                    .width(width = 153.dp)
-                    .height(height = 93.dp))
+        Image(
+            painter = painterResource(id = R.drawable.uos_mark),
+            contentDescription = "() 1",
+            modifier = Modifier
+                .width(width = 153.dp)
+                .height(height = 93.dp))
+
+        Text(
+            text = "서울시립대학교 공지사항",
+            color = UOSMain,
+            textAlign = TextAlign.Center,
+            style = TextStyle(
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold),
+            modifier = Modifier
+                .width(width = 300.dp)
+                .height(height = 50.dp))
+        Spacer(
+            modifier = Modifier
+                .height(height = 30.dp))
+
+        TextField(
+            modifier = Modifier.width(300.dp),
+            value = idText,
+            onValueChange = { idText = it },
+            label = { Text("아이디") },
+        )
+        Spacer(
+            modifier = Modifier
+                .height(height = 30.dp))
+
+        TextField(
+            modifier = Modifier.width(300.dp),
+            value = password,
+            onValueChange = {
+                password = it
+                //if(idText!="") ButtonDefaults.buttonColors(Color(0xff005ead))
+            },
+            label = { Text("비밀번호") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+        )
+        Spacer(
+            modifier = Modifier
+                .height(height = 30.dp))
+
+        Button(
+            enabled = (idText.text!="" && password.text!=""),
+            onClick = { onLoginButtonClicked(idText.text,password.text) },
+            shape = RoundedCornerShape(20),
+            modifier = Modifier
+                .width(width = 300.dp)
+                .height(height = 50.dp),
+            colors = ButtonDefaults.buttonColors(backgroundColor = UOSMain, contentColor = Color.White)
+        ) {
+            Text(text = "로그인")
         }
 
-        item {
-            Text(
-                text = "서울시립대학교 공지사항",
-                color = UOSMain,
-                textAlign = TextAlign.Center,
-                style = TextStyle(
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold),
-                modifier = Modifier
-                    .width(width = 300.dp)
-                    .height(height = 50.dp))
-            Spacer(
-                modifier = Modifier
-                    .height(height = 30.dp))
-        }
-
-        item {
-            TextField(
-                modifier = Modifier.width(300.dp),
-                value = idText,
-                onValueChange = { idText = it },
-                label = { Text("아이디") },
-            )
-            Spacer(
-                modifier = Modifier
-                    .height(height = 30.dp))
-        }
-
-        item {
-            TextField(
-                modifier = Modifier.width(300.dp),
-                value = password,
-                onValueChange = {
-                    password = it
-                    //if(idText!="") ButtonDefaults.buttonColors(Color(0xff005ead))
-                },
-                label = { Text("비밀번호") },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-            )
-            Spacer(
-                modifier = Modifier
-                    .height(height = 30.dp))
-        }
-
-
-        item {
-
-            Button(
-                enabled = (idText.text!="" && password.text!=""),
-                onClick = { onLoginButtonClicked(idText.text,password.text) },
-                shape = RoundedCornerShape(20),
-                modifier = Modifier
-                    .width(width = 300.dp)
-                    .height(height = 50.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = UOSMain, contentColor = Color.White)
-            ) {
-                Text(text = "로그인")
-            }
-
-            Spacer(
-                modifier = Modifier
-                    .height(height = 30.dp))
-        }
+        Spacer(
+            modifier = Modifier
+                .height(height = 30.dp))
     }
 }

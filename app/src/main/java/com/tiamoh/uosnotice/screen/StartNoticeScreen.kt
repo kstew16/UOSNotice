@@ -1,90 +1,109 @@
 package com.tiamoh.uosnotice.screen
 
+
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.res.Configuration
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.runtime.Composable
-import com.tiamoh.uosnotice.R
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
-
-
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.tiamoh.uosnotice.ui.theme.SemiGrayScreen
-import com.tiamoh.uosnotice.ui.theme.UOSMain
-
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.LifecycleOwner
 
 
 @Composable
 fun StartNoticeScreen(
     navController: NavHostController,
-    onMenuClicked: ()->Unit,
+    onMenuClicked: (Int)->Unit,
     onSettingsClicked:()->Unit
     //,modifier:Modifier = Modifier
 ){
-    var backKeyPressedTime = 0L
+    var backKeyPressedTime = remember { mutableStateOf(0L) }
     lateinit var toast:Toast
     val context = LocalContext.current
     val viewModel:LoginScreenViewModel
-    //var noticeName: String by viewModel.screenTitle.(LocalLifecycleOwner.current){}
+    var isTitleExpanded by remember { mutableStateOf(false) }
 
-    var noticeName = "나중에 뷰모델로 구현"
+    val sampleMenuArr = arrayOf(
+        "키워드 모아보기",
+        "홈페이지 공지",
+        "학과 공지",
+        "장학 공지",
+        "후생 복지",
+        "취업정보",
+        "비교과 프로그램",
+        "취업,진로 프로그램"
+    )
+    //var noticeName by viewModel.screenTitle.observeAsState(initial = asdf)
+
+    var noticeName = remember {
+        sampleMenuArr[0]
+    }
     Scaffold(
         topBar = {
             TopAppBar(
-                elevation = 0.dp,
-                title = { Box(
-                    modifier = Modifier
-                        .background(SemiGrayScreen)
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ){Text(
-                    color=Color.Black,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    text = noticeName
-                )} },
-                navigationIcon = {
-                    IconButton(onClick = { onMenuClicked() }) {
-                        Icon(Icons.Filled.Menu, contentDescription = "Notice Page List")
+                title = {
+                    DropdownMenu(
+                        expanded = isTitleExpanded,
+                        modifier = Modifier.wrapContentSize(),
+                        onDismissRequest = { isTitleExpanded = false }) {
+                    for(i in sampleMenuArr.indices){
+                        DropdownMenuItem(onClick = {
+                            onMenuClicked(i)
+                            noticeName = sampleMenuArr[i]
+                            isTitleExpanded = false
+                        }) {
+                            Text(sampleMenuArr[i])
+                        }
                     }
+
+                    }
+                        Button(onClick = { isTitleExpanded=true },
+                            Modifier.wrapContentWidth(),
+                            elevation = ButtonDefaults.elevation(
+                                defaultElevation = 0.dp,
+                                pressedElevation = (-4).dp
+                            )
+                        ){
+                            Text(
+                                text = noticeName,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Icon(Icons.Filled.ArrowDropDown,contentDescription = null, modifier = Modifier.size(24.dp))
+                        }
+                    Spacer(modifier = Modifier.fillMaxWidth())
                 },
+                elevation =  0.dp,
                 actions = {
                     IconButton(onClick = { onSettingsClicked() }) {
-                        Icon(Icons.Filled.Settings, contentDescription = "Settings Icon")
+                        Icon(Icons.Filled.Settings,contentDescription = null, modifier = Modifier.size(24.dp))
                     }
                 }
             )
+            //TopBarWithTitle(title = noticeName,
+            //    onMenuClicked = {onMenuClicked()},
+            //onSettingsClicked={onSettingsClicked()})
         }
     ) {
         BackHandler() {
-            if(System.currentTimeMillis()>backKeyPressedTime+2000){
-                backKeyPressedTime = System.currentTimeMillis()
+            if(System.currentTimeMillis()>backKeyPressedTime.value+2000){
+                backKeyPressedTime.value = System.currentTimeMillis()
                 toast = Toast.makeText(context,"버튼을 한 번 더 눌러 앱을 종료하세요",Toast.LENGTH_LONG)
                 toast.show()
             }else{
@@ -94,6 +113,9 @@ fun StartNoticeScreen(
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
+        Box(){
+            
+        }
         LazyColumn(
             verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -124,4 +146,40 @@ fun Context.findActivity(): Activity {
         context = context.baseContext
     }
     throw IllegalStateException("no activity")
+}
+@Preview
+@Composable
+fun TopBarWithTitle(
+    //title:String,
+    //onMenuClicked: () -> Unit,
+    //onSettingsClicked: () -> Unit
+) {
+    TopAppBar(elevation = 0.dp
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "title",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            IconButton(
+                modifier = Modifier,
+                onClick = { /*TODO*/ }
+            ) {
+                Icon(Icons.Filled.ArrowDropDown,contentDescription = null)
+            }
+            Row(
+
+                verticalAlignment = Alignment.CenterVertically){
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(Icons.Filled.Settings,contentDescription = null)
+                }
+            }
+        }
+
+    }
 }

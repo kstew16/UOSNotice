@@ -2,6 +2,7 @@ package com.tiamoh.uosnotice
 
 import android.app.Dialog
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -9,7 +10,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.tiamoh.uosnotice.screen.OpenNoticesDialog
 import com.tiamoh.uosnotice.screen.StartLoginScreen
 import com.tiamoh.uosnotice.screen.StartNoticeScreen
 
@@ -23,6 +23,7 @@ enum class UOSNoticeScreens(){
 @Composable
 fun UosNoticeApp(){
     val navController = rememberNavController()
+    val context = LocalContext.current
     NavHost(
         navController = navController, startDestination = Routes.Login.routeName
     ) {
@@ -39,7 +40,20 @@ fun UosNoticeApp(){
 
         composable(Routes.Notice.routeName){
             StartNoticeScreen(navController = navController,
-                onMenuClicked = {navController.navigate(Routes.NoticesDialog.routeName)},
+                onMenuClicked = { selectedIndex ->
+
+                                val sampleMenuArr = arrayOf(
+                                    "키워드 모아보기",
+                                    "홈페이지 공지",
+                                    "학과 공지",
+                                    "장학 공지",
+                                    "후생 복지",
+                                    "[UOStory] 취업정보",
+                                    "[UOStory] 비교과 프로그램",
+                                    "[UOStory] 취업,진로 프로그램"
+                                )
+                    Toast.makeText(context, sampleMenuArr[selectedIndex], Toast.LENGTH_SHORT).show()
+                },
                 onSettingsClicked = {navController.navigate(Routes.Settings.routeName)}
             )
         }
@@ -47,13 +61,6 @@ fun UosNoticeApp(){
         composable(Routes.Settings.routeName){
             Log.d("d","Settings Clicked")
             //StartSettingsScreen()
-        }
-
-        composable(Routes.NoticesDialog.routeName){
-            Log.d("d","Dialog Clicked")
-            OpenNoticesDialog(true){
-
-            }
         }
     }
 }

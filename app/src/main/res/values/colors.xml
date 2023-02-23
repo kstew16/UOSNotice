@@ -7,4 +7,8 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="UOSMain">#FF005EAD</color>
+    <color name="UOSLight">#FF4BACFB</color>
+    <color name="UOSBright">#FF0089FA</color>
+    <color name="SemiGrayScreen">#FFD9D9D9</color>
 </resources>

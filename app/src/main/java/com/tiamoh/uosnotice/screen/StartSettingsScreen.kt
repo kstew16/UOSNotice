@@ -18,11 +18,10 @@ import androidx.compose.ui.unit.dp
 import com.tiamoh.uosnotice.ui.theme.UOSMain
 
 @Composable
-fun SettingsPage() {
+fun StartSettingsScreen() {
     var darkMode by remember { mutableStateOf(false) }
     var notificationEnabled by remember { mutableStateOf(true) }
-    var emailNotifications by remember { mutableStateOf(true) }
-    var pushNotifications by remember { mutableStateOf(true) }
+    var keywordNotificationEnabled by remember { mutableStateOf(true) }
     var selectedKeyWords by remember { mutableStateOf(listOf("등록금", "수강신청")) }
 
     Scaffold(
@@ -44,55 +43,23 @@ fun SettingsPage() {
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
-            Text(
-                text = "테마 설정",
-                style = MaterialTheme.typography.h6,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
-                Switch(
-                    checked = darkMode,
-                    onCheckedChange = { darkMode = it },
-                    modifier = Modifier.weight(1f)
-                )
-                Text(text = "다크 모드", modifier = Modifier.weight(3f))
-            }
-            Text(
-                text = "알림 설정",
-                style = MaterialTheme.typography.h6,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
-                Switch(
-                    checked = notificationEnabled,
-                    onCheckedChange = { notificationEnabled = it },
-                    modifier = Modifier.weight(1f)
-                )
-                Text(text = "알림 켜기", modifier = Modifier.weight(3f))
-            }
             Column(
+                horizontalAlignment = Alignment.Start,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start,
                     modifier = Modifier.padding(vertical = 8.dp)
                 ){
-
+                    //Todo 라디오버튼으로 업데이트 또는 큰 거 알림 하나에 라디오 둘
                     Text(
                         text = "새 공지 알림 켜기",
-                        modifier = Modifier.padding(start = 16.dp)
                     )
                     Checkbox(
-                        checked = emailNotifications,
-                        onCheckedChange = { emailNotifications = it },
+                        checked = notificationEnabled,
+                        onCheckedChange = { notificationEnabled = it },
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
@@ -102,11 +69,10 @@ fun SettingsPage() {
                 ){
                     Text(
                         text = "키워드 알림만 켜기",
-                        modifier = Modifier.padding(start = 16.dp)
                     )
                     Checkbox(
-                        checked = pushNotifications,
-                        onCheckedChange = { pushNotifications = it },
+                        checked = keywordNotificationEnabled,
+                        onCheckedChange = { keywordNotificationEnabled = it },
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
@@ -121,13 +87,15 @@ fun SettingsPage() {
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
                 items(selectedKeyWords) { Keyword ->
-                    LanguageItem(
-                        language = Keyword,
+                    KeywordItem(
+                        keyword = Keyword,
                         onDeleteClick = { selectedKeyWords = selectedKeyWords - Keyword }
                     )
                 }
                 item {
-                    AddLanguageItem(onAddClick = { selectedKeyWords = selectedKeyWords + " 키워드 추가하기" })
+
+                    // Todo 다이얼로그 켜서 텍스트 입력받기
+                    AddKeywordItem(onAddClick = { selectedKeyWords = selectedKeyWords + " 키워드 추가하기" })
                 }
             }
         }
@@ -136,15 +104,15 @@ fun SettingsPage() {
 
 
 @Composable
-fun LanguageItem(
-    language: String,
+fun KeywordItem(
+    keyword: String,
     onDeleteClick: () -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(vertical = 8.dp)
     ) {
-        Text(text = language, modifier = Modifier.weight(1f))
+        Text(text = keyword, modifier = Modifier.weight(1f))
         IconButton(onClick = onDeleteClick) {
             Icon(Icons.Default.Delete, contentDescription = null)
         }
@@ -152,7 +120,7 @@ fun LanguageItem(
 }
 
 @Composable
-fun AddLanguageItem(
+fun AddKeywordItem(
     onAddClick: () -> Unit
 ) {
     Row(
@@ -177,8 +145,8 @@ fun AddLanguageItem(
 
 
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun SettingsPreview(){
-    SettingsPage()
+    StartSettingsScreen()
 }

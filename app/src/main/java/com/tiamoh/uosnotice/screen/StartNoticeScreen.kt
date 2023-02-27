@@ -7,7 +7,6 @@ import android.content.ContextWrapper
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,10 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -37,12 +33,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.tiamoh.uosnotice.R
 import com.tiamoh.uosnotice.data.model.NoticeItem
 import com.tiamoh.uosnotice.ui.theme.SemiGrayScreen
 import com.tiamoh.uosnotice.ui.theme.UOSMain
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun StartNoticeScreen(
     navController: NavHostController,
@@ -71,57 +67,48 @@ fun StartNoticeScreen(
     var searchText = remember { mutableStateOf(TextFieldValue("")) }
     val noticeScrollState = rememberScrollState()
     var noticeName = remember {
-        sampleMenuArr[0]
+        mutableStateOf(sampleMenuArr[0])
     }
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    DropdownMenu(
-                        expanded = isTitleExpanded,
-                        modifier = Modifier
-                            .wrapContentSize()
-                            .background(Color.Red),
-                        onDismissRequest = { isTitleExpanded = false }) {
-                        for(i in sampleMenuArr.indices){
-                            DropdownMenuItem(onClick = {
-                                onMenuClicked(i)
-                                noticeName = sampleMenuArr[i]
-                                isTitleExpanded = false
-                            },
-                            ) {
-                                Text(sampleMenuArr[i])
+                        Box(modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.CenterStart)){
+                            Row(){
+                                Text(noticeName.value,
+                                    modifier = Modifier
+                                        .wrapContentSize()
+                                        .clickable(onClick = {isTitleExpanded=true})
+                                        .background(Color.Transparent),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    color = Color.White
+                                )
+                                DropdownMenu(
+                                    expanded = isTitleExpanded,
+                                    modifier = Modifier
+                                        .wrapContentSize(),
+                                    onDismissRequest = { isTitleExpanded = false }) {
+                                    for(i in sampleMenuArr.indices){
+                                        DropdownMenuItem(onClick = {
+                                            isTitleExpanded = false
+                                            noticeName.value = sampleMenuArr[i]
+                                            onMenuClicked(i)
+                                        },
+                                        ) {
+                                            Text(sampleMenuArr[i])
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Icon(Icons.Filled.ArrowDropDown,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = Color.White
+                                )
                             }
                         }
-                    }
-                        Button(onClick = { isTitleExpanded=true },
-                            Modifier
-                                .wrapContentWidth()
-                                .background(Color.Transparent)
-                            ,
-                            colors = ButtonDefaults.buttonColors(
-                                Color.Transparent
-                            ),
-                            elevation = ButtonDefaults.elevation(
-                                defaultElevation = 0.dp,
-                                pressedElevation = (-4).dp
-                            )
-                        ){
-                            Text(
-                                text = noticeName,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp,
-                                modifier = Modifier.background(Color.Transparent),
-                                color = Color.White
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Icon(Icons.Filled.ArrowDropDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = Color.White
-                            )
-                        }
-                    Spacer(modifier = Modifier.fillMaxWidth())
+
                 },
                 elevation =  0.dp,
                 actions = {
@@ -132,7 +119,8 @@ fun StartNoticeScreen(
                             tint = Color.White)
                     }
                 },
-                backgroundColor = UOSMain
+                backgroundColor = UOSMain,
+                modifier = Modifier.height(70.dp)
             )
             //TopBarWithTitle(title = noticeName,
             //    onMenuClicked = {onMenuClicked()},
@@ -235,7 +223,6 @@ fun SearchView(state: MutableState<TextFieldValue>) {
 }
 
 
-@Preview(showBackground = true)
 @Composable
 fun SearchViewPreview() {
     val textState = remember { mutableStateOf(TextFieldValue("")) }
@@ -333,7 +320,6 @@ fun NoticeListItem(noticeItem: NoticeItem,onItemClick: (String) -> Unit) {
     }
 }
 
-@Preview(showBackground = true)
 @Composable
 fun NoticeListItemPreview() {
     val sampleItem = NoticeItem(

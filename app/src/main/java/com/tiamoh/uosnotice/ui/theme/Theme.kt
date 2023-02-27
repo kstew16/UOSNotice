@@ -46,11 +46,11 @@ fun UosNoticeTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
     systemUiController.setSystemBarsColor(Color.Red)
     if(darkTheme){
         systemUiController.setSystemBarsColor(
-            color = Color.Red
+            color = UOSMain
         )
     }else{
         systemUiController.setSystemBarsColor(
-            color = Color.Red
+            color = UOSMain
         )
     }
 

@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.tiamoh.uosnotice.screen.StartLoginScreen
 import com.tiamoh.uosnotice.screen.StartNoticeScreen
+import com.tiamoh.uosnotice.screen.StartSettingsScreen
 
 
 enum class UOSNoticeScreens(){
@@ -59,8 +60,8 @@ fun UosNoticeApp(){
         }
 
         composable(Routes.Settings.routeName){
-            Log.d("d","Settings Clicked")
-            //StartSettingsScreen()
+            //Log.d("d","Settings Clicked")
+            StartSettingsScreen()
         }
     }
 }

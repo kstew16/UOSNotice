@@ -61,10 +61,7 @@ fun UosNoticeApp(){
 
         composable(Routes.Settings.routeName){
             //Log.d("d","Settings Clicked")
-            StartSettingsScreen()
+            StartSettingsScreen(navController)
         }
     }
-}
-fun dummyFunction(){
-    Log.d("d","dummy")
 }

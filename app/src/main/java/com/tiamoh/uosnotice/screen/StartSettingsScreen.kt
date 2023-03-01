@@ -15,21 +15,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import com.tiamoh.uosnotice.Routes
+import com.tiamoh.uosnotice.ui.theme.UOSLight
 import com.tiamoh.uosnotice.ui.theme.UOSMain
+import java.util.regex.Pattern
 
 @Composable
-fun StartSettingsScreen() {
+fun StartSettingsScreen(
+    navController: NavHostController,
+) {
     var darkMode by remember { mutableStateOf(false) }
-    var notificationEnabled by remember { mutableStateOf(true) }
-    var keywordNotificationEnabled by remember { mutableStateOf(true) }
-    var selectedKeyWords by remember { mutableStateOf(listOf("등록금", "수강신청")) }
+    var notificationMode by remember { mutableStateOf(0) }
+    var newKeyword by remember { mutableStateOf("") }
+    var keywords by remember { mutableStateOf(listOf("등록금", "수강신청")) }
+    var notificationEnabled by remember { mutableStateOf(false) }
+    var isDialogOpen by remember { mutableStateOf(false) }
+    var addButtonEnabled by remember { mutableStateOf(false)}
+    var selectedOption = remember { mutableStateOf(NotificationOption.All) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(text = "설정") },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO */ }) {
+                    IconButton(onClick = { navController.navigate(Routes.Notice.routeName) }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = null,tint=Color.White)
                     }
                 },
@@ -48,33 +58,44 @@ fun StartSettingsScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                ){
-                    //Todo 라디오버튼으로 업데이트 또는 큰 거 알림 하나에 라디오 둘
-                    Text(
-                        text = "새 공지 알림 켜기",
-                    )
-                    Checkbox(
-                        checked = notificationEnabled,
-                        onCheckedChange = { notificationEnabled = it },
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                ){
-                    Text(
-                        text = "키워드 알림만 켜기",
-                    )
-                    Checkbox(
-                        checked = keywordNotificationEnabled,
-                        onCheckedChange = { keywordNotificationEnabled = it },
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 16.dp)
+                    ) {
+                        Text(
+                            text = "새 공지 알림 받기",
+                            style = MaterialTheme.typography.h6,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Switch(
+                            checked = notificationEnabled,
+                            onCheckedChange = { notificationEnabled = it },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = UOSMain,
+                                checkedTrackColor = UOSMain
+                            )
+                        )
+                    }
+
+                    if (notificationEnabled) {
+                        Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(bottom = 16.dp))
+
+                        Column(Modifier.padding(start = 16.dp)) {
+                            Text(
+                                text = "알림을 받을 공지",
+                                style = MaterialTheme.typography.body1,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            RadioGroup(
+                                options = NotificationOption.values().toList(),
+                                selectedOption = selectedOption.value,
+                                onOptionSelected = {
+                                    selectedOption.value = it
+                                }
+                            )
+                        }
+                    }
                 }
             }
             Text(
@@ -86,20 +107,76 @@ fun StartSettingsScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
-                items(selectedKeyWords) { Keyword ->
+                items(keywords) { keyword ->
                     KeywordItem(
-                        keyword = Keyword,
-                        onDeleteClick = { selectedKeyWords = selectedKeyWords - Keyword }
+                        keyword = keyword,
+                        onDeleteClick = { keywords = keywords - keyword }
                     )
                 }
                 item {
-
-                    // Todo 다이얼로그 켜서 텍스트 입력받기
-                    AddKeywordItem(onAddClick = { selectedKeyWords = selectedKeyWords + " 키워드 추가하기" })
+                    AddKeywordItem(onAddClick = {
+                        isDialogOpen = true
+                    })
                 }
             }
         }
+        if(isDialogOpen){
+            newKeyword = ""
+            AlertDialog(
+                onDismissRequest = { isDialogOpen = false },
+                title = { Text("키워드 추가하기") },
+                text = {
+                    TextField(
+                        value = newKeyword,
+                        onValueChange = {
+                            newKeyword = it
+                            addButtonEnabled = isValidInput(it) },
+                        singleLine = true,
+                        colors = TextFieldDefaults.textFieldColors(
+                            textColor = Color.Black,
+                            backgroundColor = Color.Transparent,
+                            focusedIndicatorColor = UOSMain,
+                            unfocusedIndicatorColor = UOSLight,
+                            disabledIndicatorColor = UOSLight
+                        ),
+                        placeholder = {Text("한글, 영문, 숫자 입력 가능")}
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            keywords = keywords + newKeyword
+                            isDialogOpen = false
+                        },
+                        enabled = addButtonEnabled,
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = UOSMain,
+                            contentColor = Color.White,
+                            disabledContentColor = Color.White
+                        )
+                    ) {
+                        Text("추가")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = { isDialogOpen = false },
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = UOSMain,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("취소")
+                    }
+                }
+            )
+        }
     }
+}
+
+fun isValidInput(input:String):Boolean{
+    val ps = Pattern.compile("^[ㄱ-ㅣ가-힣a-zA-Z0-9\\s]+$")
+    return ps.matcher(input).matches()
 }
 
 
@@ -132,7 +209,7 @@ fun AddKeywordItem(
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = null,
-            tint = MaterialTheme.colors.primary,
+            tint = UOSMain,
             modifier = Modifier.size(24.dp)
         )
         Text(
@@ -143,10 +220,35 @@ fun AddKeywordItem(
     }
 }
 
+enum class NotificationOption {
+    All,
+    KeywordOnly
+}
 
-
-@Preview(showBackground = true)
 @Composable
-fun SettingsPreview(){
-    StartSettingsScreen()
+fun RadioGroup(
+    options: List<NotificationOption>,
+    selectedOption: NotificationOption,
+    onOptionSelected: (NotificationOption) -> Unit
+) {
+    Column {
+        options.forEach { option ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .clickable(onClick = { onOptionSelected(option) })
+            ) {
+                RadioButton(
+                    selected = option == selectedOption,
+                    onClick = null
+                )
+                Text(
+                    text = if(option == NotificationOption.All) "모든 공지" else  "키워드가 포함된 공지",
+                    style = MaterialTheme.typography.body2,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
+    }
 }

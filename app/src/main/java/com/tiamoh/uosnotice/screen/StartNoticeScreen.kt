@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,12 +27,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.tiamoh.uosnotice.data.model.NoticeItem
 import com.tiamoh.uosnotice.data.model.NoticeViewModel
@@ -49,12 +50,19 @@ fun StartNoticeScreen(
     noticeViewModel:NoticeViewModel
     //,modifier:Modifier = Modifier
 ){
-    var backKeyPressedTime by remember { mutableStateOf(0L) }
     lateinit var toast:Toast
     val context = LocalContext.current
     val noticeList = noticeViewModel.list.observeAsState().value
+    val interactionSource = remember { MutableInteractionSource() }
+    val focusManger = LocalFocusManager.current
 
     Scaffold(
+        modifier = Modifier.clickable(
+            interactionSource = interactionSource,
+            indication = null
+        ){
+         focusManger?.clearFocus()
+        },
         topBar = {
             DropBoxTopBar(
                 defaultNoticeType = defaultNoticeType,
@@ -62,37 +70,49 @@ fun StartNoticeScreen(
                 onSettingsClicked=onSettingsClicked)
         }
     ) {
-        BackHandler() {
-            if(System.currentTimeMillis()>backKeyPressedTime+2000){
-                backKeyPressedTime = System.currentTimeMillis()
-                toast = Toast.makeText(context,"버튼을 한 번 더 눌러 앱을 종료하세요",Toast.LENGTH_LONG)
-                toast.show()
-            }else{
-                toast.cancel()
-                    val context = LocalContext as Context
-                context.findActivity().finish()
-            }
-        }
-        // Todo : 이것도 분리, Composable 함수는 0-1개의 레이아웃 조각을 내보내야 함
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-            ,
-            modifier = Modifier
-                .fillMaxSize()
-                .background(SemiGrayScreen)
-
-        ) {
-            SearchView(onSearchText = {noticeViewModel.filterNoticeBy(it)})
-            ListNotices(noticeList = noticeList){
+        SearchListView(
+            onSearchText = {noticeViewModel.filterNoticeBy(it)},
+            noticeList = noticeList,
+            onItemClick = {
                 // Todo : NavHost 이용해서 WebView 띄우기
                 toast = Toast.makeText(context,"$it (으)로 리디렉션됩니다.",Toast.LENGTH_LONG)
                 toast.show()
             }
+        )
+    }
+    backHandler(toast = Toast.makeText(context,"버튼을 한 번 더 눌러 앱을 종료하세요",Toast.LENGTH_LONG))
+}
+
+@Composable
+fun backHandler(toast: Toast){
+    var backKeyPressedTime by remember { mutableStateOf(0L) }
+    BackHandler() {
+        if(System.currentTimeMillis()>backKeyPressedTime+2000){
+            backKeyPressedTime = System.currentTimeMillis()
+            toast.show()
+        }else{
+            toast.cancel()
+            val context = LocalContext as Context
+            context.findActivity().finish()
         }
     }
 }
 
+@Composable
+fun SearchListView(onSearchText:(String)->Unit, noticeList: List<NoticeItem>?, onItemClick: (String) -> Unit){
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+        ,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(SemiGrayScreen)
+
+    ) {
+        SearchView(onSearchText = onSearchText)
+        NoticeListItem(noticeList = noticeList,onItemClick = onItemClick)
+    }
+}
 
 @Composable
 fun DropBoxTopBar(
@@ -175,7 +195,7 @@ fun DropBoxTopBar(
 }
 
 @Composable
-fun ListNotices(noticeList:List<NoticeItem>?,onItemClick: (String) -> Unit){
+fun NoticeListItem(noticeList:List<NoticeItem>?, onItemClick: (String) -> Unit){
     LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(15.dp),

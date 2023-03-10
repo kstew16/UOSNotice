@@ -7,9 +7,11 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.ViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.tiamoh.uosnotice.data.model.NoticeViewModel
 import com.tiamoh.uosnotice.screen.StartLoginScreen
 import com.tiamoh.uosnotice.screen.StartNoticeScreen
 import com.tiamoh.uosnotice.screen.StartSettingsScreen
@@ -25,6 +27,8 @@ enum class UOSNoticeScreens(){
 fun UosNoticeApp(){
     val navController = rememberNavController()
     val context = LocalContext.current
+    val defaultNoticeType = 0
+    val noticeViewModel = NoticeViewModel(defaultNoticeType)
     NavHost(
         navController = navController, startDestination = Routes.Login.routeName
     ) {
@@ -55,7 +59,9 @@ fun UosNoticeApp(){
                                 )
                     Toast.makeText(context, sampleMenuArr[selectedIndex], Toast.LENGTH_SHORT).show()
                 },
-                onSettingsClicked = {navController.navigate(Routes.Settings.routeName)}
+                onSettingsClicked = {navController.navigate(Routes.Settings.routeName)},
+                defaultNoticeType = defaultNoticeType,
+                noticeViewModel = noticeViewModel
             )
         }
 

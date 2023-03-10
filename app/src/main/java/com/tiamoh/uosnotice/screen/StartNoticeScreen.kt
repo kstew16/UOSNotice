@@ -44,101 +44,27 @@ import com.tiamoh.uosnotice.ui.theme.UOSMain
 fun StartNoticeScreen(
     navController: NavHostController,
     onMenuClicked: (Int)->Unit,
-    onSettingsClicked:()->Unit
+    onSettingsClicked:()->Unit,
+    defaultNoticeType:Int,
+    noticeViewModel:NoticeViewModel
     //,modifier:Modifier = Modifier
 ){
-    var backKeyPressedTime = remember { mutableStateOf(0L) }
+    var backKeyPressedTime by remember { mutableStateOf(0L) }
     lateinit var toast:Toast
     val context = LocalContext.current
-    val defaultNoticeType = 0
-    val selectedNoticeType = remember{ mutableStateOf(defaultNoticeType) }
-    //val noticeViewModel:NoticeViewModel = NoticeViewModel(selectedNoticeType.value)
-    Log.d("NoticeScreen","call viewModel with noticeType ${selectedNoticeType.value}")
-    val noticeViewModel by remember {
-        mutableStateOf(
-            NoticeViewModel(selectedNoticeType.value)
-        )
-    }
     val noticeList = noticeViewModel.list.observeAsState().value
-
-    var isTitleExpanded by remember { mutableStateOf(false) }
-    // Todo : 이거 data.allNotices 로 관리
-    val noticeTypeName = arrayOf(
-        "키워드 모아보기",
-        "홈페이지 공지",
-        "학과 공지",
-        "장학 공지",
-        "후생 복지",
-        "취업정보",
-        "비교과 프로그램",
-        "취업,진로 프로그램"
-    )
-    var noticeName = remember {
-        mutableStateOf(noticeTypeName[selectedNoticeType.value])
-    }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-
-                    Box(modifier = Modifier
-                        .fillMaxSize()
-                        .wrapContentSize(Alignment.CenterStart)){
-                        Row(){
-                            Text(noticeName.value,
-                                modifier = Modifier
-                                    .wrapContentSize()
-                                    .clickable(onClick = { isTitleExpanded = true })
-                                    .background(Color.Transparent),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp,
-                                color = Color.White
-                            )
-                            DropdownMenu(
-                                expanded = isTitleExpanded,
-                                modifier = Modifier
-                                    .wrapContentSize(),
-                                onDismissRequest = { isTitleExpanded = false }) {
-                                for(i in noticeTypeName.indices){
-                                    DropdownMenuItem(onClick = {
-                                        isTitleExpanded = false
-                                        selectedNoticeType.value = i
-                                        noticeName.value = noticeTypeName[i]
-                                        noticeViewModel.selectNoticeType(i)
-                                        Log.d("DropDown","noticeType ${selectedNoticeType.value}")
-                                    },
-                                    ) {
-                                        Text(noticeTypeName[i])
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Icon(Icons.Filled.ArrowDropDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = Color.White
-                            )
-                        }
-                    }
-                },
-                elevation =  0.dp,
-                actions = {
-                    IconButton(onClick = { onSettingsClicked() }) {
-                        Icon(Icons.Filled.Settings,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = Color.White)
-                    }
-                },
-                backgroundColor = UOSMain,
-                modifier = Modifier.height(70.dp)
-            )
+            DropBoxTopBar(
+                defaultNoticeType = defaultNoticeType,
+                onMenuClicked = {noticeViewModel.selectNoticeType(it)},
+                onSettingsClicked=onSettingsClicked)
         }
     ) {
         BackHandler() {
-            if(System.currentTimeMillis()>backKeyPressedTime.value+2000){
-                backKeyPressedTime.value = System.currentTimeMillis()
+            if(System.currentTimeMillis()>backKeyPressedTime+2000){
+                backKeyPressedTime = System.currentTimeMillis()
                 toast = Toast.makeText(context,"버튼을 한 번 더 눌러 앱을 종료하세요",Toast.LENGTH_LONG)
                 toast.show()
             }else{
@@ -156,13 +82,94 @@ fun StartNoticeScreen(
                 .background(SemiGrayScreen)
 
         ) {
-            SearchView(noticeViewModel = noticeViewModel)
+            SearchView(onSearchText = {noticeViewModel.filterNoticeBy(it)})
             ListNotices(noticeList = noticeList){
+                // Todo : NavHost 이용해서 WebView 띄우기
                 toast = Toast.makeText(context,"$it (으)로 리디렉션됩니다.",Toast.LENGTH_LONG)
                 toast.show()
             }
         }
     }
+}
+
+@Composable
+fun DropBoxTopBar(
+    defaultNoticeType:Int,
+    onMenuClicked: (Int) -> Unit,
+    onSettingsClicked: () -> Unit
+){
+    val selectedNoticeType = remember{ mutableStateOf(defaultNoticeType) }
+    var isTitleExpanded by remember { mutableStateOf(false) }
+    // Todo : 이거 data.allNotices 로 관리
+    val noticeTypeName = arrayOf(
+        "키워드 모아보기",
+        "홈페이지 공지",
+        "학과 공지",
+        "장학 공지",
+        "후생 복지",
+        "취업정보",
+        "비교과 프로그램",
+        "취업,진로 프로그램"
+    )
+    var noticeName by remember {
+        mutableStateOf(noticeTypeName[selectedNoticeType.value])
+    }
+
+    TopAppBar(
+        title = {
+
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.CenterStart)){
+                Row(){
+                    Text(noticeName,
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .clickable(onClick = { isTitleExpanded = true })
+                            .background(Color.Transparent),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = Color.White
+                    )
+                    DropdownMenu(
+                        expanded = isTitleExpanded,
+                        modifier = Modifier
+                            .wrapContentSize(),
+                        onDismissRequest = { isTitleExpanded = false }) {
+                        for(i in noticeTypeName.indices){
+                            DropdownMenuItem(onClick = {
+                                isTitleExpanded = false
+                                selectedNoticeType.value = i
+                                noticeName = noticeTypeName[i]
+                                onMenuClicked(i)
+                                Log.d("DropDown","noticeType ${selectedNoticeType.value}")
+                            },
+                            ) {
+                                Text(noticeTypeName[i])
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Icon(Icons.Filled.ArrowDropDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.White
+                    )
+                }
+            }
+        },
+        elevation =  0.dp,
+        actions = {
+            IconButton(onClick = { onSettingsClicked() }) {
+                Icon(Icons.Filled.Settings,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = Color.White)
+            }
+        },
+        backgroundColor = UOSMain,
+        modifier = Modifier.height(70.dp)
+    )
 }
 
 @Composable
@@ -228,14 +235,14 @@ fun NoticeListItem(noticeItem: NoticeItem,onItemClick: (String) -> Unit) {
 }
 
 @Composable
-fun SearchView(noticeViewModel: NoticeViewModel){
+fun SearchView(onSearchText:(String)->Unit){
     var searchText: String by rememberSaveable{ mutableStateOf("") }
     TextField(
         value = searchText,
         onValueChange = {
             searchText = it
             Log.d("SearchView","call viewModel")
-            noticeViewModel.filterNoticeBy(it)
+            onSearchText(it)
         },
         maxLines = 1,
         modifier = Modifier
@@ -259,7 +266,7 @@ fun SearchView(noticeViewModel: NoticeViewModel){
                     onClick = {
                         searchText = "" // Remove text from TextField when you press the 'X' icon
                         Log.d("TopBar","call viewModel")
-                        noticeViewModel.filterNoticeBy("")
+                        onSearchText("")
                     }
                 ) {
                     Icon(

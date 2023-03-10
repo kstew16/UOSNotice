@@ -62,6 +62,7 @@ fun StartNoticeScreen(
     val noticeList = noticeViewModel.list.observeAsState().value
 
     var isTitleExpanded by remember { mutableStateOf(false) }
+    // Todo : 이거 data.allNotices 로 관리
     val noticeTypeName = arrayOf(
         "키워드 모아보기",
         "홈페이지 공지",

@@ -73,6 +73,7 @@ fun StartNoticeScreen(
                 context.findActivity().finish()
             }
         }
+        // Todo : 이것도 분리, Composable 함수는 0-1개의 레이아웃 조각을 내보내야 함
         Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -91,6 +92,7 @@ fun StartNoticeScreen(
         }
     }
 }
+
 
 @Composable
 fun DropBoxTopBar(

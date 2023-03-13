@@ -1,13 +1,9 @@
 package com.tiamoh.uosnotice
 
-import android.app.Dialog
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.ViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -15,6 +11,11 @@ import com.tiamoh.uosnotice.data.model.NoticeViewModel
 import com.tiamoh.uosnotice.screen.StartLoginScreen
 import com.tiamoh.uosnotice.screen.StartNoticeScreen
 import com.tiamoh.uosnotice.screen.StartSettingsScreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.jsoup.Connection
+import org.jsoup.Jsoup
 
 
 enum class UOSNoticeScreens(){
@@ -39,7 +40,8 @@ fun UosNoticeApp(){
                 //println(id.plus(passWord))
                 Log.d("d",id)
                 Log.d("d",passWord)
-                navController.navigate(Routes.Notice.routeName)
+                portalLogin(id = id, pw = passWord)
+                //navController.navigate(Routes.Notice.routeName)
             }
         }
 
@@ -69,5 +71,24 @@ fun UosNoticeApp(){
             //Log.d("d","Settings Clicked")
             StartSettingsScreen(navController)
         }
+    }
+}
+
+fun portalLogin(id:String,pw:String){
+    CoroutineScope(Dispatchers.IO).launch{
+        val loginPageResponse: Connection.Response = Jsoup.connect("https://portal.uos.ac.kr/user/login.face")
+            .timeout(3000)
+            .header(
+                "Accept",
+                "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+            )
+            .header("Upgrade-Insecure-Requests","1")
+            .header("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Mobile Safari/537.36")
+            .header("sec-ch-ua", "\"Chromium\";v=\"110\", \"Not A(Brand\";v=\"24\", \"Google Chrome\";v=\"110\"")
+            .header("sec-ch-ua-mobile","?1")
+            .header("sec-ch-ua-platform","\"Android\"")
+            .method(Connection.Method.GET)
+            .execute()
+        Log.d("Login",loginPageResponse.statusMessage())
     }
 }

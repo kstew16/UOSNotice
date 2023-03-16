@@ -34,8 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.tiamoh.uosnotice.data.model.NoticeItem
-import com.tiamoh.uosnotice.data.model.NoticeViewModel
+import com.tiamoh.uosnotice.data.model.Notice
 import com.tiamoh.uosnotice.ui.theme.SemiGrayScreen
 import com.tiamoh.uosnotice.ui.theme.UOSMain
 
@@ -47,7 +46,7 @@ fun StartNoticeScreen(
     onMenuClicked: (Int)->Unit,
     onSettingsClicked:()->Unit,
     defaultNoticeType:Int,
-    noticeViewModel:NoticeViewModel
+    noticeViewModel: NoticeViewModel
     //,modifier:Modifier = Modifier
 ){
     lateinit var toast:Toast
@@ -99,7 +98,7 @@ fun backHandler(toast: Toast){
 }
 
 @Composable
-fun SearchListView(onSearchText:(String)->Unit, noticeList: List<NoticeItem>?, onItemClick: (String) -> Unit){
+fun SearchListView(onSearchText:(String)->Unit, noticeList: List<Notice>?, onItemClick: (String) -> Unit){
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -195,7 +194,7 @@ fun DropBoxTopBar(
 }
 
 @Composable
-fun NoticeListItem(noticeList:List<NoticeItem>?, onItemClick: (String) -> Unit){
+fun NoticeListItem(noticeList:List<Notice>?, onItemClick: (String) -> Unit){
     LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(15.dp),
@@ -210,7 +209,7 @@ fun NoticeListItem(noticeList:List<NoticeItem>?, onItemClick: (String) -> Unit){
                         notice -> notice.id
                 }
             ){ notice->
-                NoticeListItem(noticeItem = notice){
+                NoticeListItem(notice = notice){
                     onItemClick(notice.url)
                 }
             }
@@ -219,10 +218,10 @@ fun NoticeListItem(noticeList:List<NoticeItem>?, onItemClick: (String) -> Unit){
 }
 
 @Composable
-fun NoticeListItem(noticeItem: NoticeItem,onItemClick: (String) -> Unit) {
+fun NoticeListItem(notice: Notice, onItemClick: (String) -> Unit) {
     Box(modifier = Modifier
         .clip(RoundedCornerShape(15.dp))
-        .clickable(onClick = { onItemClick(noticeItem.url) })
+        .clickable(onClick = { onItemClick(notice.url) })
         .background(Color.White)
         .height(150.dp)
         .fillMaxWidth()
@@ -234,7 +233,7 @@ fun NoticeListItem(noticeItem: NoticeItem,onItemClick: (String) -> Unit) {
             Column(
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = noticeItem.title, fontSize = 23.sp,
+                Text(text = notice.title, fontSize = 23.sp,
                     color = Color.Black,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -245,11 +244,11 @@ fun NoticeListItem(noticeItem: NoticeItem,onItemClick: (String) -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ){
                     Text(
-                        text = noticeItem.writer, fontSize = 20.sp,
+                        text = notice.writer, fontSize = 20.sp,
                         color = Color.LightGray,
                         modifier = Modifier.padding(horizontal = 5.dp)
                     )
-                    Text(text = noticeItem.date, fontSize = 20.sp, color = Color.LightGray)
+                    Text(text = notice.date, fontSize = 20.sp, color = Color.LightGray)
                 }
             }
         }

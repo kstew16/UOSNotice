@@ -94,6 +94,7 @@ class NoticeViewModel @Inject constructor(
                         notice.writer.contains(_filterText.lowercase())
             ) filteredList.add(notice)
         }
+        filteredList.forEach { Log.d("vm",it.title) }
         _list.postValue(filteredList)
     }
 
@@ -124,51 +125,47 @@ class NoticeViewModel @Inject constructor(
                         loadedNotice.clear()
 
                         //val doc = Jsoup.connect(noticeURLList[1])
-                        val doc = Jsoup.connect("https://www.uos.ac.kr/korNotice/list.do?list_id=FA1")
-                            //.timeout(3000).ignoreHttpErrors(true)
-                            .header(
-                                "Accept",
-                                "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
-                            )
-                            .header("Upgrade-Insecure-Requests","1")
-                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36")
-                            .header("sec-ch-ua", "Google Chrome\";v=\"111\", \"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"111")
-                            .header("sec-ch-ua-mobile","?0")
-                            .header("sec-ch-ua-platform","\"Windows\"")
-                            .get()
+                        val doc = Jsoup.parse(noticeRepository.test().body()?.string())
                         //val doc = Jsoup.parse(response.toString())
-                        val notices = doc.getElementsByClass("li")
+                        val noticeClass = doc.getElementsByClass("brd-lstp1")
+                        val notices = noticeClass[0].getElementsByTag("li")
                         notices.forEach { noticeListItem ->
-                            val titleClass = noticeListItem.getElementsByClass("ti")
-                            var url = ""
-                            var title = ""
-                            for(i in titleClass.indices){
-                                if(titleClass[i]!=null){
-                                    val (sort,seq) = with(titleClass[i].getElementsByAttribute("href").toString()){
-                                        this.substring(this.indexOf('('),this.indexOf(')')).split(",").map { wrappedParameter->
-                                            wrappedParameter.substring(1,wrappedParameter.length-1)
+                            if(noticeListItem.getElementsByClass("cl").size==0 || noticeListItem.getElementsByClass("cl")[0].ownText() != "공지"){
+                                val titleClass = noticeListItem.getElementsByClass("ti")
+                                var url = ""
+                                var title = ""
+                                for(i in titleClass.indices){
+                                    if(titleClass[i]!=null){
+                                        val (sort,seq) = with(titleClass[i].getElementsByAttribute("href").toString()){
+                                            this.substring(this.indexOf('('),this.indexOf(')')).split(",").map { wrappedParameter->
+                                                wrappedParameter.substring(1,wrappedParameter.length-1)
+                                            }
+                                        }
+                                        url = "https://www.uos.ac.kr/korNotice/view.do?list_id=FA1&seq=$seq&sort=$sort&pageIndex=2&searchCnd=&searchWrd=&cate_id=&viewAuth=Y&writeAuth=N&board_list_num=10&lpageCount=12&menuid=2000005009002000000"
+                                        title = titleClass[i].getElementsByTag("a")[0].ownText()
+                                        break
+                                    }
+                                }
+                                val dataClass = noticeListItem.getElementsByClass("da")
+                                var writer = ""
+                                var date = ""
+                                dataClass[0]?.let {
+                                    val data = it.getElementsByTag("span")
+                                    data.forEachIndexed { index, element ->
+                                        when(index){
+                                            0 -> {writer = element.ownText()}
+                                            1 -> {date = element.ownText()}
                                         }
                                     }
-                                    url = "https://www.uos.ac.kr/korNotice/view.do?list_id=FA1&seq=$seq&sort=$sort&pageIndex=2&searchCnd=&searchWrd=&cate_id=&viewAuth=Y&writeAuth=N&board_list_num=10&lpageCount=12&menuid=2000005009002000000"
-                                    title = titleClass[i].data()
-                                    break
                                 }
-                            }
-                            val dataClass = noticeListItem.getElementsByClass("da")
-                            var writer = ""
-                            var date = ""
-                            dataClass.forEachIndexed { index, element ->
-                                when(index){
-                                    0 -> {writer = element.data()}
-                                    1 -> {date = element.data()}
+                                if(title!="" && url != "" && writer !="" && date != ""){
+                                    loadedNotice.add(Notice(
+                                        title,title, writer, date, url
+                                    ))
                                 }
-                            }
-                            if(title!="" && url != "" && writer !="" && date != ""){
-                                loadedNotice.add(Notice(
-                                    title,title, writer, date, url
-                                ))
                             }
                         }
+
                         filterNoticeBy(_filterText)
                     }
                     else->{

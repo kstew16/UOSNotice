@@ -17,4 +17,5 @@ class NoticeRepositoryImpl @Inject constructor(
     ): Response<ResponseBody> = remoteSource.postAccountInfo(id, pw, loginType)
     override suspend fun getNoticePage(): Response<ResponseBody> = remoteSource.getNoticePage()
     override suspend fun getNoticePortlet(): Response<ResponseBody> = remoteSource.getNoticePortlet()
+    override suspend fun test():Response<ResponseBody> = remoteSource.test()
 }

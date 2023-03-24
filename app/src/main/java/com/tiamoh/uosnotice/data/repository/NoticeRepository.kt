@@ -13,5 +13,6 @@ interface NoticeRepository {
         pw: MultipartBody.Part,
         loginType: MultipartBody.Part
     ):Response<ResponseBody>
-    suspend fun getNotices(typeNo:Int): Response<Void>
+    suspend fun getNoticePage(): Response<ResponseBody>
+    suspend fun getNoticePortlet(): Response<ResponseBody>
 }

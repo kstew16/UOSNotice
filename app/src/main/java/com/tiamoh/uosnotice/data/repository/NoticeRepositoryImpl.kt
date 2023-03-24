@@ -2,9 +2,7 @@ package com.tiamoh.uosnotice.data.repository
 
 import com.tiamoh.uosnotice.data.api.AuthedNoticeApiHelper
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.ResponseBody
-import retrofit2.Call
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -17,5 +15,6 @@ class NoticeRepositoryImpl @Inject constructor(
         pw: MultipartBody.Part,
         loginType: MultipartBody.Part
     ): Response<ResponseBody> = remoteSource.postAccountInfo(id, pw, loginType)
-    override suspend fun getNotices(typeNo: Int): Response<Void> = remoteSource.getNotices()
+    override suspend fun getNoticePage(): Response<ResponseBody> = remoteSource.getNoticePage()
+    override suspend fun getNoticePortlet(): Response<ResponseBody> = remoteSource.getNoticePortlet()
 }

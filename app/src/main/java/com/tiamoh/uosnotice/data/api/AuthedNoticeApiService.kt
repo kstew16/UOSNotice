@@ -20,5 +20,8 @@ interface AuthedNoticeApiService {
     ): Response<ResponseBody>
 
     @GET("portal/default/test/tesr_stu_default.page")
-    suspend fun getNotices(): Response<Void>
+    suspend fun getNoticePage(): Response<ResponseBody>
+
+    @GET("https://portal.uos.ac.kr/uos/GA07.face?flag_group=STU&lang_knd=ko&userAgent=Chrome&isMobile=false&")
+    suspend fun getNoticePortlet(): Response<ResponseBody>
 }

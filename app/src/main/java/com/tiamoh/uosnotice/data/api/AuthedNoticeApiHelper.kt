@@ -11,5 +11,6 @@ interface AuthedNoticeApiHelper {
         pw: MultipartBody.Part,
         loginType: MultipartBody.Part
     ):Response<ResponseBody>
-    suspend fun getNotices():Response<Void>
+    suspend fun getNoticePage():Response<ResponseBody>
+    suspend fun getNoticePortlet(): Response<ResponseBody>
 }

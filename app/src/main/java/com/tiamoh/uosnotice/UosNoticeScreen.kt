@@ -1,11 +1,9 @@
 package com.tiamoh.uosnotice
 
-import android.app.Activity
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -13,7 +11,6 @@ import com.tiamoh.uosnotice.screen.NoticeViewModel
 import com.tiamoh.uosnotice.screen.StartLoginScreen
 import com.tiamoh.uosnotice.screen.StartNoticeScreen
 import com.tiamoh.uosnotice.screen.StartSettingsScreen
-import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.*
 import org.jsoup.Connection
 import org.jsoup.Jsoup
@@ -45,7 +42,8 @@ fun UosNoticeApp(noticeViewModel: NoticeViewModel) {
                 Log.d("d",id)
                 Log.d("d",passWord)
                 //portalLogin(id = id, pw = passWord)
-                noticeViewModel.login(id,passWord)
+                //portalLogin(id = "kstew16", pw = "projectPassword16!")
+                noticeViewModel.loginAndCrawl("kstew16","projectPassword16!")
                 navController.navigate(Routes.Notice.routeName)
             }
         }
@@ -59,7 +57,6 @@ fun UosNoticeApp(noticeViewModel: NoticeViewModel) {
                                     "홈페이지 공지",
                                     "학과 공지",
                                     "장학 공지",
-                                    "후생 복지",
                                     "[UOStory] 취업정보",
                                     "[UOStory] 비교과 프로그램",
                                     "[UOStory] 취업,진로 프로그램"

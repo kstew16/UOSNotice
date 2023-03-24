@@ -13,7 +13,10 @@ class AuthedNoticeApiHelperImpl @Inject constructor(
         pw: MultipartBody.Part,
         loginType: MultipartBody.Part
     ): Response<ResponseBody> = authedNoticeApiService.postAccountInfo(id,pw,loginType)
-    override suspend fun getNotices():Response<Void> {
-        return authedNoticeApiService.getNotices()
+    override suspend fun getNoticePage():Response<ResponseBody> {
+        return authedNoticeApiService.getNoticePage()
+    }
+    override suspend fun getNoticePortlet(): Response<ResponseBody>{
+        return authedNoticeApiService.getNoticePortlet()
     }
 }

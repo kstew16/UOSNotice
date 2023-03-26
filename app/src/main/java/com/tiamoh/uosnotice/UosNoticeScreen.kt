@@ -34,7 +34,7 @@ fun UosNoticeApp(noticeViewModel: NoticeViewModel) {
         navController = navController, startDestination = Routes.Login.routeName
     ) {
         composable(Routes.Login.routeName) {
-            StartLoginScreen(navController = navController) { id, passWord ->
+            StartLoginScreen(navController = navController,noticeViewModel) { id, passWord ->
                 // retrofit2 를 이용하여 서울시립대 포털사이트에 로그인
                 // 실패시 Notice 띄우고 성공시 NoticePage 로 연결해야함
                 //println(id.plus(passWord))
@@ -43,8 +43,8 @@ fun UosNoticeApp(noticeViewModel: NoticeViewModel) {
                 Log.d("d",passWord)
                 //portalLogin(id = id, pw = passWord)
                 //portalLogin(id = "kstew16", pw = "projectPassword16!")
-                noticeViewModel.loginAndCrawl("kstew16","projectPassword16!")
-                navController.navigate(Routes.Notice.routeName)
+                //noticeViewModel.loginAndCrawl("kstew16","projectPassword16!")
+                noticeViewModel.loginAndCrawl(id,passWord)
             }
         }
 

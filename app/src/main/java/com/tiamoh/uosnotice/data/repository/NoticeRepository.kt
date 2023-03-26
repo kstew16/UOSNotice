@@ -15,5 +15,5 @@ interface NoticeRepository {
     ):Response<ResponseBody>
     suspend fun getNoticePage(): Response<ResponseBody>
     suspend fun getNoticePortlet(): Response<ResponseBody>
-    suspend fun test():Response<ResponseBody>
+    //suspend fun test():Response<ResponseBody>
 }

@@ -1,5 +1,6 @@
 package com.tiamoh.uosnotice.screen
 
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -13,15 +14,13 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.focusTarget
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.onFocusEvent
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -36,7 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.tiamoh.uosnotice.R
+import com.tiamoh.uosnotice.Routes
 import com.tiamoh.uosnotice.ui.theme.UOSMain
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.regex.Pattern
 
@@ -45,7 +46,8 @@ import java.util.regex.Pattern
 @Composable
 fun StartLoginScreen(
     navController: NavHostController,
-    onLoginButtonClicked: (String,String) -> Unit
+    noticeViewModel: NoticeViewModel,
+    onLoginButtonClicked: (String, String) -> Job
     //,modifier:Modifier = Modifier
 ) {
     //SecuredSharedPreferences
@@ -56,6 +58,8 @@ fun StartLoginScreen(
     val interactionSource = remember { MutableInteractionSource()}
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false)    }
+    val isLoggedIn by noticeViewModel.isLoggedIn.observeAsState()
 
     Box(
         modifier = Modifier
@@ -150,7 +154,9 @@ fun StartLoginScreen(
 
             Button(
                 enabled = (idText.text!="" && password.text!=""),
-                onClick = { onLoginButtonClicked(idText.text,password.text) },
+                onClick = { onLoginButtonClicked(idText.text,password.text)
+                    isLoading = true
+                },
                 shape = RoundedCornerShape(20),
                 modifier = Modifier
                     .width(width = 300.dp)
@@ -167,6 +173,13 @@ fun StartLoginScreen(
             Spacer(
                 modifier = Modifier
                     .height(height = 30.dp))
+            if(isLoading){
+                if(isLoggedIn==true){
+                    navController.navigate(Routes.Notice.routeName)
+                    isLoading = false
+                    Log.d("loginScreen","navigate to Notice")
+                }
+            }
         }
     }
 }

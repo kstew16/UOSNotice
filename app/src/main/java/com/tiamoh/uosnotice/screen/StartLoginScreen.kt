@@ -9,10 +9,7 @@ import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,12 +28,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.tiamoh.uosnotice.R
 import com.tiamoh.uosnotice.Routes
+import com.tiamoh.uosnotice.data.api.dto.AccountDTO
 import com.tiamoh.uosnotice.ui.theme.UOSMain
+import com.tiamoh.uosnotice.util.EncryptedAccountManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.regex.Pattern
@@ -47,6 +47,7 @@ import java.util.regex.Pattern
 fun StartLoginScreen(
     navController: NavHostController,
     noticeViewModel: NoticeViewModel,
+    encryptedAccountManager: EncryptedAccountManager,
     onLoginButtonClicked: (String, String) -> Job
     //,modifier:Modifier = Modifier
 ) {
@@ -60,6 +61,7 @@ fun StartLoginScreen(
     val coroutineScope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false)    }
     val isLoggedIn by noticeViewModel.isLoggedIn.observeAsState()
+    var setRememberAccount by remember { mutableStateOf(false)}
 
     Box(
         modifier = Modifier
@@ -80,7 +82,7 @@ fun StartLoginScreen(
                     start = 30.dp,
                     end = 30.dp,
                     top = 100.dp,
-                    bottom = 150.dp
+                    bottom = 100.dp
                 )
         ) {
             Image(
@@ -156,6 +158,10 @@ fun StartLoginScreen(
                 enabled = (idText.text!="" && password.text!=""),
                 onClick = { onLoginButtonClicked(idText.text,password.text)
                     isLoading = true
+                    if(setRememberAccount){
+                        Log.d("loginScreen","saving account")
+                        encryptedAccountManager.saveAccount(AccountDTO(idText.text, password.text))
+                    }
                 },
                 shape = RoundedCornerShape(20),
                 modifier = Modifier
@@ -169,10 +175,14 @@ fun StartLoginScreen(
             ) {
                 Text(text = "로그인")
             }
-
             Spacer(
                 modifier = Modifier
-                    .height(height = 30.dp))
+                    .height(height = 20.dp))
+            RememberAccountCheckbox(){isChecked->
+                setRememberAccount = isChecked
+                Log.d("loginScreen","checkbox enabled : $isChecked")
+            }
+
             if(isLoading){
                 if(isLoggedIn==true){
                     navController.navigate(Routes.Notice.routeName)
@@ -188,6 +198,36 @@ fun isValidID(input:String):Boolean{
     val ps = Pattern.compile("^[a-zA-Z\\d]+$")
     return ps.matcher(input).matches()
 }
+
+@Composable
+fun RememberAccountCheckbox(onCheckedChange:(Boolean)->Unit) {
+    val checkedState = remember { mutableStateOf(true) }
+    Row (
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+            ){
+        Checkbox(
+            checked = checkedState.value,
+            modifier = Modifier
+                .padding(start = 20.dp)
+            ,
+            onCheckedChange = {
+                checkedState.value = it
+                onCheckedChange(it) },
+        )
+        Text(
+            text = "계정 정보 기억하기",
+            modifier = Modifier.padding(0.dp),
+            color = Color.Black,
+            textAlign = TextAlign.Start,
+            style = TextStyle(
+                fontSize = 16.sp,
+            )
+        )
+    }
+}
+
 /*
 fun isValidPW(input:String):Boolean{
     val ps = Pattern.compile("^[A-Za-z\\d\$@\$!%*#?&]+$")
@@ -195,4 +235,10 @@ fun isValidPW(input:String):Boolean{
 }
 
  */
+
+@Preview
+@Composable
+fun DefaultPreview(){
+    RememberAccountCheckbox(onCheckedChange = {})
+}
 

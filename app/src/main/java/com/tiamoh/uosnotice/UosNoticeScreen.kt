@@ -11,6 +11,7 @@ import com.tiamoh.uosnotice.screen.NoticeViewModel
 import com.tiamoh.uosnotice.screen.StartLoginScreen
 import com.tiamoh.uosnotice.screen.StartNoticeScreen
 import com.tiamoh.uosnotice.screen.StartSettingsScreen
+import com.tiamoh.uosnotice.util.EncryptedAccountManager
 import kotlinx.coroutines.*
 import org.jsoup.Connection
 import org.jsoup.Jsoup
@@ -27,6 +28,7 @@ fun UosNoticeApp(noticeViewModel: NoticeViewModel) {
     val navController = rememberNavController()
     val context = LocalContext.current
     val defaultNoticeType = 0
+    val encryptedAccountManager = EncryptedAccountManager(context)
     //val noticeViewModel = NoticeViewModel()
     //val noticeViewModel:NoticeViewModel = viewModel()
     //val noticeViewModel:NoticeViewModel = hiltViewModel()
@@ -34,7 +36,7 @@ fun UosNoticeApp(noticeViewModel: NoticeViewModel) {
         navController = navController, startDestination = Routes.Login.routeName
     ) {
         composable(Routes.Login.routeName) {
-            StartLoginScreen(navController = navController,noticeViewModel) { id, passWord ->
+            StartLoginScreen(navController = navController,noticeViewModel,encryptedAccountManager) { id, passWord ->
                 // retrofit2 를 이용하여 서울시립대 포털사이트에 로그인
                 // 실패시 Notice 띄우고 성공시 NoticePage 로 연결해야함
                 //println(id.plus(passWord))

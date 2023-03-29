@@ -2,6 +2,7 @@ package com.tiamoh.uosnotice.util
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.tiamoh.uosnotice.data.api.dto.AccountDTO
@@ -24,6 +25,7 @@ class EncryptedAccountManager(applicationContext:Context) {
     }
 
     fun saveAccount(accountDTO: AccountDTO){
+        Log.d("account","saving id ${accountDTO.id} and pw")
         sharedPreferences.edit().putString("id", accountDTO.id).putString("pw",accountDTO.pw).apply()
     }
     fun getAccount():AccountDTO{

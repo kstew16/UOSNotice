@@ -37,6 +37,7 @@ import androidx.navigation.NavHostController
 import com.tiamoh.uosnotice.data.model.Notice
 import com.tiamoh.uosnotice.ui.theme.SemiGrayScreen
 import com.tiamoh.uosnotice.ui.theme.UOSMain
+import com.tiamoh.uosnotice.util.findActivity
 
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -79,11 +80,12 @@ fun StartNoticeScreen(
             }
         )
     }
-    backHandler(toast = Toast.makeText(context,"버튼을 한 번 더 눌러 앱을 종료하세요",Toast.LENGTH_LONG))
+    backHandler(toast = Toast.makeText(context,"버튼을 한 번 더 눌러 앱을 종료하세요",Toast.LENGTH_LONG),
+        LocalContext.current)
 }
 
 @Composable
-fun backHandler(toast: Toast){
+fun backHandler(toast: Toast,context:Context){
     var backKeyPressedTime by remember { mutableStateOf(0L) }
     BackHandler() {
         if(System.currentTimeMillis()>backKeyPressedTime+2000){
@@ -91,7 +93,6 @@ fun backHandler(toast: Toast){
             toast.show()
         }else{
             toast.cancel()
-            val context = LocalContext as Context
             context.findActivity().finish()
         }
     }
@@ -312,13 +313,4 @@ fun SearchView(onSearchText:(String)->Unit){
             disabledIndicatorColor = Color.Transparent
         )
     )
-}
-
-fun Context.findActivity(): Activity {
-    var context = this
-    while (context is ContextWrapper) {
-        if (context is Activity) return context
-        context = context.baseContext
-    }
-    throw IllegalStateException("no activity")
 }

@@ -1,5 +1,8 @@
 package com.tiamoh.uosnotice
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.Composable

@@ -1,5 +1,6 @@
 package com.tiamoh.uosnotice.screen
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -37,6 +39,8 @@ import com.tiamoh.uosnotice.Routes
 import com.tiamoh.uosnotice.data.api.dto.AccountDTO
 import com.tiamoh.uosnotice.ui.theme.UOSMain
 import com.tiamoh.uosnotice.util.EncryptedAccountManager
+import com.tiamoh.uosnotice.util.SharedPreferenceManager
+import com.tiamoh.uosnotice.util.findActivity
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.regex.Pattern
@@ -52,8 +56,7 @@ fun StartLoginScreen(
     //,modifier:Modifier = Modifier
 ) {
     //SecuredSharedPreferences
-    var idText by rememberSaveable(stateSaver = TextFieldValue.Saver){ mutableStateOf(TextFieldValue())}
-    var password by rememberSaveable(stateSaver = TextFieldValue.Saver){ mutableStateOf(TextFieldValue()) }
+
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManger = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource()}
@@ -61,7 +64,15 @@ fun StartLoginScreen(
     val coroutineScope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false)    }
     val isLoggedIn by noticeViewModel.isLoggedIn.observeAsState()
-    var setRememberAccount by remember { mutableStateOf(false)}
+    val sharedPreferenceManager = SharedPreferenceManager((LocalContext.current).findActivity())
+    var setRememberAccount by remember { mutableStateOf(sharedPreferenceManager.getSetting("savingId",false))}
+    val savedAccount = encryptedAccountManager.getAccount()
+    var idText by rememberSaveable(stateSaver = TextFieldValue.Saver){ mutableStateOf(TextFieldValue(
+        savedAccount.id
+    ))}
+    var password by rememberSaveable(stateSaver = TextFieldValue.Saver){ mutableStateOf(TextFieldValue(
+        savedAccount.pw
+    )) }
 
     Box(
         modifier = Modifier
@@ -161,6 +172,10 @@ fun StartLoginScreen(
                     if(setRememberAccount){
                         Log.d("loginScreen","saving account")
                         encryptedAccountManager.saveAccount(AccountDTO(idText.text, password.text))
+                        sharedPreferenceManager.setSetting("savingId",true)
+                    }else{
+                        encryptedAccountManager.saveAccount(AccountDTO("", ""))
+                        sharedPreferenceManager.setSetting("savingId",false)
                     }
                 },
                 shape = RoundedCornerShape(20),
@@ -178,10 +193,10 @@ fun StartLoginScreen(
             Spacer(
                 modifier = Modifier
                     .height(height = 20.dp))
-            RememberAccountCheckbox(){isChecked->
+            RememberAccountCheckbox(initialChecked = setRememberAccount, onCheckedChange = {isChecked->
                 setRememberAccount = isChecked
                 Log.d("loginScreen","checkbox enabled : $isChecked")
-            }
+            })
 
             if(isLoading){
                 if(isLoggedIn==true){
@@ -200,8 +215,9 @@ fun isValidID(input:String):Boolean{
 }
 
 @Composable
-fun RememberAccountCheckbox(onCheckedChange:(Boolean)->Unit) {
-    val checkedState = remember { mutableStateOf(true) }
+fun RememberAccountCheckbox(onCheckedChange:(Boolean)->Unit,initialChecked:Boolean)
+{
+    val checkedState = remember { mutableStateOf(initialChecked) }
     Row (
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -228,17 +244,10 @@ fun RememberAccountCheckbox(onCheckedChange:(Boolean)->Unit) {
     }
 }
 
-/*
-fun isValidPW(input:String):Boolean{
-    val ps = Pattern.compile("^[A-Za-z\\d\$@\$!%*#?&]+$")
-    return ps.matcher(input).matches()
-}
-
- */
 
 @Preview
 @Composable
 fun DefaultPreview(){
-    RememberAccountCheckbox(onCheckedChange = {})
+    RememberAccountCheckbox(onCheckedChange = {}, initialChecked = false)
 }
 

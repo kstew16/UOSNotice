@@ -2,7 +2,7 @@ package com.tiamoh.uosnotice.data.model
 
 import java.util.*
 
-data class NoticeItem(
+data class Notice(
     val id:String = UUID.randomUUID().toString(),
     val title:String="",
     val writer:String,

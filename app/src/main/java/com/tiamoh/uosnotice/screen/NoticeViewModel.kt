@@ -155,5 +155,6 @@ class NoticeViewModel @Inject constructor(
                 noticeURLList[2] = "https://$url"
             }
         }
+        // 페이지 인덱스 작업 필요 (230421)
     }
 }

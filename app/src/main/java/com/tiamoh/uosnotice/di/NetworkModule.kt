@@ -8,6 +8,7 @@ import com.tiamoh.uosnotice.data.api.AuthedNoticeApiHelperImpl
 import com.tiamoh.uosnotice.data.api.AuthedNoticeApiService
 import com.tiamoh.uosnotice.data.repository.NoticeRepository
 import com.tiamoh.uosnotice.data.repository.NoticeRepositoryImpl
+import com.tiamoh.uosnotice.util.ProxyCookieManager
 
 import dagger.Module
 import dagger.Provides
@@ -18,22 +19,23 @@ import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.JavaNetCookieJar
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
-import java.net.CookieManager
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    val gson : Gson = GsonBuilder()
+    private val gson : Gson = GsonBuilder()
         .setLenient()
         .create()
+
+    private val syncCookieManager = ProxyCookieManager()
 
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient =
         OkHttpClient.Builder()
-            .cookieJar(JavaNetCookieJar(CookieManager()))
+            .cookieJar(JavaNetCookieJar(syncCookieManager))
             .build()
 
 

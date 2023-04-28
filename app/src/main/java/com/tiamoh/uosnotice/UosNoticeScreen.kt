@@ -1,8 +1,5 @@
 package com.tiamoh.uosnotice
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.Composable
@@ -15,7 +12,9 @@ import com.tiamoh.uosnotice.screen.StartLoginScreen
 import com.tiamoh.uosnotice.screen.StartNoticeScreen
 import com.tiamoh.uosnotice.screen.StartSettingsScreen
 import com.tiamoh.uosnotice.util.EncryptedAccountManager
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jsoup.Connection
 import org.jsoup.Jsoup
 
@@ -27,7 +26,9 @@ enum class UOSNoticeScreens(){
 }
 
 @Composable
-fun UosNoticeApp(noticeViewModel: NoticeViewModel) {
+fun UosNoticeApp(
+    noticeViewModel: NoticeViewModel
+) {
     val navController = rememberNavController()
     val context = LocalContext.current
     val defaultNoticeType = 0

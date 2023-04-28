@@ -15,5 +15,13 @@ interface NoticeRepository {
     ):Response<ResponseBody>
     suspend fun getNoticePage(): Response<ResponseBody>
     suspend fun getNoticePortlet(): Response<ResponseBody>
-    //suspend fun test():Response<ResponseBody>
+    /*
+    suspend fun loginToUoStory(
+        id: MultipartBody.Part,
+        pw: MultipartBody.Part,
+        loginType: MultipartBody.Part
+    ): Response<ResponseBody>
+    suspend fun test():Response<ResponseBody>
+
+     */
 }

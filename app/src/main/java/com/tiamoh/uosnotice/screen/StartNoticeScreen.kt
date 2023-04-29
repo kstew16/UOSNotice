@@ -40,6 +40,7 @@ import com.tiamoh.uosnotice.data.model.Notice
 import com.tiamoh.uosnotice.ui.theme.SemiGrayScreen
 import com.tiamoh.uosnotice.ui.theme.UOSMain
 import com.tiamoh.uosnotice.util.findActivity
+import kotlinx.coroutines.Job
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -91,11 +92,15 @@ fun StartNoticeScreen(
 }
 
 @Composable
-fun WebViewForDynamicCrawl(padding:PaddingValues, onPageFinished: () -> Int) {
+fun WebViewForDynamicCrawl(padding:PaddingValues, onPageFinished: () -> Job) {
 
-    val mUrl = "https://uostory.uos.ac.kr/site/main/index003"
+    var loginState by remember{ mutableStateOf(0) }
+    val url1 = "https://portal.uos.ac.kr"
+    //val url2 = "https://uostory.uos.ac.kr/site/main/index003"
+    val url2 = "https://uostory.uos.ac.kr"
     AndroidView(
-        modifier = Modifier.padding(padding).size(1.dp),
+        //modifier = Modifier.padding(padding).size(1.dp),
+        modifier = Modifier.padding(padding).fillMaxSize(),
         factory = { context ->
 
             WebView(context).apply {
@@ -107,10 +112,17 @@ fun WebViewForDynamicCrawl(padding:PaddingValues, onPageFinished: () -> Int) {
 
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
-                        onPageFinished()
+                        if(loginState == 0){
+                            loginState++
+                            loadUrl(url2)
+                        }else if(loginState==1){
+                            onPageFinished()
+                            loginState++
+                        }
                     }
                 }
-                loadUrl(mUrl)
+                loadUrl(url1)
+
             }
         }
     )

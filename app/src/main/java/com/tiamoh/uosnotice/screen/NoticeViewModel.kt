@@ -1,7 +1,10 @@
 package com.tiamoh.uosnotice.screen
 
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.tiamoh.uosnotice.data.model.Notice
 import com.tiamoh.uosnotice.data.repository.NoticeRepository
 import com.tiamoh.uosnotice.util.FormDataUtil
@@ -11,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
-import org.jsoup.Connection
 import org.jsoup.Jsoup
 import javax.inject.Inject
 
@@ -36,14 +38,17 @@ class NoticeViewModel @Inject constructor(
         get() = _failedLoginCount
     private val noticeURLList = Array(7){""}.apply {
         // 홈페이지공지
-        this[1] = "https://www.uos.ac.kr/korNotice/list.do?list_id=FA1"
-        // 학사공지는 계정 정보가 필요하기때문에 로그인 후에 세팅
+        this[1] = "https://www.uos.ac.kr/korNotice/list.do?list_id=FA1" // &pageIndex=#
+        // 학사공지는 계정 정보가 필요하기때문에 로그인 후에 세팅, &pageIndex=#
         // 장학공지
-        this[3] = "https://scholarship.uos.ac.kr/scholarship/notice/notice/list.do?brdBbsseq=1"
-        this[4] = ""
+        this[3] = "https://scholarship.uos.ac.kr/scholarship/notice/notice/list.do?brdBbsseq=1" // &pageIndex=#
+        this[4] = "https://uostory.uos.ac.kr/site/program/recruit/list?menuid=003003004002001&type=C" // &currentpage=#
+        this[5] = "https://uostory.uos.ac.kr/site/reservation/lecture/lectureList?menuid=003004002001&reservegroupid=1&viewtype=L&rectype=L&thumbnail=N" // &currentpage=#
+        this[6] = "https://uostory.uos.ac.kr/site/reservation/lecture/lectureList?menuid=003003002002&reservegroupid=1&viewtype=L&rectype=J&thumbnail=N" // &currentpage=#
     }
     // 필터되기 전 리스트
     private val loadedNotice = ArrayList<Notice>()
+
 
 
     init {
@@ -84,20 +89,13 @@ class NoticeViewModel @Inject constructor(
                     _failedLoginCount.postValue(0)
                     // 파싱 로직
                     getListOfNotices(_currentType)
-                    //val response = noticeRepository.getNoticePortlet()
-                    //response.body()?.let { fillNoticeURLs(it) }
+
                     true
                 }
             }
         )
     }
-/*
-    fun loadNotices(){
-        Log.d("vm","postNotice $_currentType type")
-        _list.postValue(getListOfNotices(_currentType))
-    }
 
- */
    fun filterNoticeBy(searchText:String){
         Log.d("vm","filter by $searchText, typeNO $_currentType")
         _filterText = searchText
@@ -134,7 +132,7 @@ class NoticeViewModel @Inject constructor(
                 // 로그인 성공
                 val response = noticeRepository.getNoticePortlet()
                 // 로그인 이후에 알아낼 수 있는 url 등록
-                response.body()?.let { fillNoticeURLs(it) }
+                response.body()?.let { fillMainPageUrls(it) }
                 // url 을 통해서 공지사항 로드 후 등록
 
             }
@@ -143,8 +141,8 @@ class NoticeViewModel @Inject constructor(
 
     }
 
-    private fun fillNoticeURLs(response:ResponseBody) = viewModelScope.launch(Dispatchers.IO){
-        Log.d("vm","fill Notice URLS")
+    private fun fillMainPageUrls(response:ResponseBody) = viewModelScope.launch(Dispatchers.IO){
+        Log.d("vm","fill Main Page URLS")
         // 로그인 후에 얻을 수 있는 url 들도 등록
         val document = Jsoup.parse(response.string())
         val majorNoticeList = document.getElementsByClass("m2")

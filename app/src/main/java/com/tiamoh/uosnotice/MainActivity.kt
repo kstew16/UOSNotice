@@ -13,7 +13,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    val noticeViewModel:NoticeViewModel by viewModels()
+    private val noticeViewModel:NoticeViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //val noticeViewModel: NoticeViewModel = hiltViewModel()

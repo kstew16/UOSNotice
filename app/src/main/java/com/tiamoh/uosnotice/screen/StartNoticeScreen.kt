@@ -1,10 +1,11 @@
 package com.tiamoh.uosnotice.screen
 
 
-import android.app.Activity
 import android.content.Context
-import android.content.ContextWrapper
+import android.graphics.Bitmap
 import android.util.Log
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
@@ -33,24 +34,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.tiamoh.uosnotice.data.model.Notice
 import com.tiamoh.uosnotice.ui.theme.SemiGrayScreen
 import com.tiamoh.uosnotice.ui.theme.UOSMain
 import com.tiamoh.uosnotice.util.findActivity
 
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun StartNoticeScreen(
     navController: NavHostController,
-    onMenuClicked: (Int)->Unit,
-    onSettingsClicked:()->Unit,
-    defaultNoticeType:Int,
+    onMenuClicked: (Int) -> Unit,
+    onSettingsClicked: () -> Unit,
+    defaultNoticeType: Int,
     noticeViewModel: NoticeViewModel
-    //,modifier:Modifier = Modifier
 ){
     lateinit var toast:Toast
+
+
     val context = LocalContext.current
     val noticeList = noticeViewModel.list.observeAsState().value
     val interactionSource = remember { MutableInteractionSource() }
@@ -70,7 +72,10 @@ fun StartNoticeScreen(
                 onSettingsClicked=onSettingsClicked)
         }
     ) {
+        WebViewForDynamicCrawl(it
+        ) { Log.d("Webview","finished loading") }
         SearchListView(
+            it,
             onSearchText = {noticeViewModel.filterNoticeBy(it)},
             noticeList = noticeList,
             onItemClick = {
@@ -79,9 +84,36 @@ fun StartNoticeScreen(
                 toast.show()
             }
         )
+
     }
     backHandler(toast = Toast.makeText(context,"버튼을 한 번 더 눌러 앱을 종료하세요",Toast.LENGTH_LONG),
         LocalContext.current)
+}
+
+@Composable
+fun WebViewForDynamicCrawl(padding:PaddingValues, onPageFinished: () -> Int) {
+
+    val mUrl = "https://uostory.uos.ac.kr/site/main/index003"
+    AndroidView(
+        modifier = Modifier.padding(padding).size(1.dp),
+        factory = { context ->
+
+            WebView(context).apply {
+                settings.javaScriptEnabled = true
+                webViewClient = object : WebViewClient() {
+                    override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                        super.onPageStarted(view, url, favicon)
+                    }
+
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        onPageFinished()
+                    }
+                }
+                loadUrl(mUrl)
+            }
+        }
+    )
 }
 
 @Composable
@@ -99,7 +131,7 @@ fun backHandler(toast: Toast,context:Context){
 }
 
 @Composable
-fun SearchListView(onSearchText:(String)->Unit, noticeList: List<Notice>?, onItemClick: (String) -> Unit){
+fun SearchListView(padding:PaddingValues,onSearchText:(String)->Unit, noticeList: List<Notice>?, onItemClick: (String) -> Unit){
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -107,6 +139,7 @@ fun SearchListView(onSearchText:(String)->Unit, noticeList: List<Notice>?, onIte
         modifier = Modifier
             .fillMaxSize()
             .background(SemiGrayScreen)
+            .padding(padding)
 
     ) {
         SearchView(onSearchText = onSearchText)

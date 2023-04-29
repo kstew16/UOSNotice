@@ -19,7 +19,15 @@ class AuthedNoticeApiHelperImpl @Inject constructor(
     override suspend fun getNoticePortlet(): Response<ResponseBody>{
         return authedNoticeApiService.getNoticePortlet()
     }
-    //override suspend fun test():Response<ResponseBody>{
-    //    return authedNoticeApiService.test()
-    //}
+/*
+    override suspend fun loginToUoStory(
+        id: MultipartBody.Part,
+        pw: MultipartBody.Part,
+        loginType: MultipartBody.Part
+    ): Response<ResponseBody> = authedNoticeApiService.postAccountInfo(id,pw,loginType)
+    override suspend fun test():Response<ResponseBody>{
+        return authedNoticeApiService.test()
+    }
+
+ */
 }

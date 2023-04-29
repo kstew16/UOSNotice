@@ -3,22 +3,20 @@ package com.tiamoh.uosnotice.di
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.tiamoh.uosnotice.BuildConfig
-import com.tiamoh.uosnotice.data.api.AuthedNoticeApiHelper
-import com.tiamoh.uosnotice.data.api.AuthedNoticeApiHelperImpl
-import com.tiamoh.uosnotice.data.api.AuthedNoticeApiService
+import com.tiamoh.uosnotice.data.api.*
 import com.tiamoh.uosnotice.data.repository.NoticeRepository
 import com.tiamoh.uosnotice.data.repository.NoticeRepositoryImpl
+import com.tiamoh.uosnotice.data.repository.SessionRepository
+import com.tiamoh.uosnotice.data.repository.SessionRepositoryImpl
 import com.tiamoh.uosnotice.util.ProxyCookieManager
-
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-
-import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.JavaNetCookieJar
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -63,5 +61,20 @@ object NetworkModule {
     @Singleton
     fun provideNoticeApiHelper(noticeApiHelper: AuthedNoticeApiHelperImpl): AuthedNoticeApiHelper =
         noticeApiHelper
+
+    @Provides
+    @Singleton
+    fun provideSessionRepository(sessionRepository: SessionRepositoryImpl): SessionRepository =
+        sessionRepository
+
+    @Provides
+    @Singleton
+    fun provideSessionApiService(retrofit: Retrofit): SessionApiService =
+        retrofit.create(SessionApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSessionApiHelper(sessionApiHelper: SessionApiHelperImpl): SessionApiHelper =
+        sessionApiHelper
 
 }

@@ -48,7 +48,8 @@ fun StartNoticeScreen(
     onMenuClicked: (Int) -> Unit,
     onSettingsClicked: () -> Unit,
     defaultNoticeType: Int,
-    noticeViewModel: NoticeViewModel
+    noticeViewModel: NoticeViewModel,
+    sessionViewModel: SessionViewModel
 ){
     lateinit var toast:Toast
 
@@ -57,6 +58,8 @@ fun StartNoticeScreen(
     val noticeList = noticeViewModel.list.observeAsState().value
     val interactionSource = remember { MutableInteractionSource() }
     val focusManger = LocalFocusManager.current
+    val isPortalOnline = sessionViewModel.isPortalOnline.observeAsState().value
+    val isStoryOnline = sessionViewModel.isStoryOnline.observeAsState().value
 
     Scaffold(
         modifier = Modifier.clickable(
@@ -71,11 +74,15 @@ fun StartNoticeScreen(
                 onMenuClicked = {noticeViewModel.selectNoticeType(it)},
                 onSettingsClicked=onSettingsClicked)
         }
-    ) {
-        WebViewForDynamicCrawl(it
-        ) { Log.d("Webview","finished loading") }
+    ) { paddingValues -> // 이거 오류 생길걸?
+        WebViewForDynamicCrawl(paddingValues,isStoryOnline
+        ) {
+            // 자바스크립트 필요해서 여기 뷰모델이랑 결합성 있음
+            Log.d("Webview","finished loading")
+            sessionViewModel.checkSession()
+        }
         SearchListView(
-            it,
+            paddingValues,
             onSearchText = {noticeViewModel.filterNoticeBy(it)},
             noticeList = noticeList,
             onItemClick = {
@@ -91,11 +98,17 @@ fun StartNoticeScreen(
 }
 
 @Composable
-fun WebViewForDynamicCrawl(padding:PaddingValues, onPageFinished: () -> Int) {
+fun WebViewForDynamicCrawl(padding:PaddingValues,isStoryOnline:Boolean?, onPageFinished: () -> Unit) {
 
-    val mUrl = "https://uostory.uos.ac.kr/site/main/index003"
+    var loginState by remember{ mutableStateOf(0) }
+    isStoryOnline?.let { if(it) loginState=2 }
+    val url1 = "https://portal.uos.ac.kr"
+    //val url2 = "https://uostory.uos.ac.kr/site/main/index003"
+    val url2 = "https://uostory.uos.ac.kr"
     AndroidView(
-        modifier = Modifier.padding(padding).size(1.dp),
+        //modifier = Modifier.padding(padding).size(1.dp),
+        modifier = Modifier
+            .padding(padding).size(1.dp),
         factory = { context ->
 
             WebView(context).apply {
@@ -107,10 +120,17 @@ fun WebViewForDynamicCrawl(padding:PaddingValues, onPageFinished: () -> Int) {
 
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
-                        onPageFinished()
+                        if(loginState == 0){
+                            loginState++
+                            loadUrl(url2)
+                        }else if(loginState==1){
+                            onPageFinished()
+                            loginState++
+                        }
                     }
                 }
-                loadUrl(mUrl)
+                if(loginState==0) loadUrl(url1)
+
             }
         }
     )

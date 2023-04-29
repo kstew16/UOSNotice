@@ -1,8 +1,9 @@
 package com.tiamoh.uosnotice.screen
 
-import android.content.Context
 import android.util.Log
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -52,6 +53,7 @@ fun StartLoginScreen(
     navController: NavHostController,
     noticeViewModel: NoticeViewModel,
     encryptedAccountManager: EncryptedAccountManager,
+    sessionViewModel: SessionViewModel,
     onLoginButtonClicked: (String, String) -> Job
     //,modifier:Modifier = Modifier
 ) {
@@ -63,7 +65,7 @@ fun StartLoginScreen(
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false)    }
-    val isLoggedIn by noticeViewModel.isLoggedIn.observeAsState()
+    val isLoggedIn by sessionViewModel.isPortalOnline.observeAsState()
     val sharedPreferenceManager = SharedPreferenceManager((LocalContext.current).findActivity())
     var setRememberAccount by remember { mutableStateOf(sharedPreferenceManager.getSetting("savingId",false))}
     val savedAccount = encryptedAccountManager.getAccount()

@@ -7,20 +7,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tiamoh.uosnotice.data.model.Notice
 import com.tiamoh.uosnotice.data.repository.NoticeRepository
-import com.tiamoh.uosnotice.util.FormDataUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import org.jsoup.Jsoup
 import javax.inject.Inject
 
+// 세션이 확실하다는 전제 하에 실행되는 뷰모델 로직
 @HiltViewModel
 class NoticeViewModel @Inject constructor(
     private val noticeRepository: NoticeRepository
-):ViewModel() {
+    ):ViewModel() {
     private var _list = MutableLiveData<List<Notice>>()
     val list: LiveData<List<Notice>>
         get() = _list
@@ -28,18 +26,11 @@ class NoticeViewModel @Inject constructor(
     private var _filterText:String
     private val defaultType = 1
 
-
-    private var _isLoggedIn = MutableLiveData<Boolean>()
-    val isLoggedIn: LiveData<Boolean>
-        get() = _isLoggedIn
-    private var lastLoginID = ""
-    private var _failedLoginCount = MutableLiveData<Int>()
-    val failedLoginCount: LiveData<Int>
-        get() = _failedLoginCount
     private val noticeURLList = Array(7){""}.apply {
         // 홈페이지공지
         this[1] = "https://www.uos.ac.kr/korNotice/list.do?list_id=FA1" // &pageIndex=#
         // 학사공지는 계정 정보가 필요하기때문에 로그인 후에 세팅, &pageIndex=#
+        this[2] = ""
         // 장학공지
         this[3] = "https://scholarship.uos.ac.kr/scholarship/notice/notice/list.do?brdBbsseq=1" // &pageIndex=#
         this[4] = "https://uostory.uos.ac.kr/site/program/recruit/list?menuid=003003004002001&type=C" // &currentpage=#
@@ -54,47 +45,12 @@ class NoticeViewModel @Inject constructor(
     init {
         Log.d("vm","init vm")
         _currentType = defaultType
-        _isLoggedIn.postValue(false)
         _filterText = ""
-        _failedLoginCount.postValue(0)
         //loadNotices()
         //filterNoticeBy(_filterText)
         //loginAndCrawl("kstew16","projectPassword16!")
-
     }
 
-    fun loginAndCrawl(id:String, pw:String) = viewModelScope.launch(Dispatchers.IO){
-        // Todo: 여기도 로그 지우기
-        Log.d("vm","login with $id $pw")
-        if(id!=lastLoginID) _failedLoginCount.postValue(0)
-
-        val handler = CoroutineExceptionHandler{_,throwable ->
-            throwable.message?.let { Log.d("vm", it) }
-        }
-        _isLoggedIn.postValue(
-            withContext(Dispatchers.IO+handler){
-                val formId = FormDataUtil.getBody("ssoId",id)
-                val formPw = FormDataUtil.getBody("password",pw)
-                val formLoginType = FormDataUtil.getBody("loginType","normal")
-
-                val loginResponse = noticeRepository.postAccountInfo(formId,formPw,formLoginType)
-                if(loginResponse.headers().size!=7){
-                    //_isLoggedIn.postValue(false)
-                    Log.d("vm","login failed!")
-                    _failedLoginCount.postValue(_failedLoginCount.value?.plus(1) ?: 1)
-                    false
-                }else{
-                    //_isLoggedIn.postValue(true)
-                    Log.d("vm","login suceed!")
-                    _failedLoginCount.postValue(0)
-                    // 파싱 로직
-                    getListOfNotices(_currentType)
-
-                    true
-                }
-            }
-        )
-    }
 
    fun filterNoticeBy(searchText:String){
         Log.d("vm","filter by $searchText, typeNO $_currentType")
@@ -119,31 +75,14 @@ class NoticeViewModel @Inject constructor(
     }
 
     // Todo : 파싱해서 만들기 : 코루틴
-    private fun getListOfNotices(typeNo:Int){
-        Log.d("vm","getListOfNotices $_currentType")
-        val handler = CoroutineExceptionHandler{_,throwable ->
-            throwable.message?.let { Log.d("vm", it) }
-        }
-        viewModelScope.launch(Dispatchers.IO+handler){
-            val loginResponse = noticeRepository.getNoticePage()
-            if(!loginResponse.isSuccessful || loginResponse.headers().size!=7){
-                throw Exception("SessionError")
-            }else{
-                // 로그인 성공
-                val response = noticeRepository.getNoticePortlet()
-                // 로그인 이후에 알아낼 수 있는 url 등록
-                response.body()?.let { fillMainPageUrls(it) }
-                // url 을 통해서 공지사항 로드 후 등록
-
-            }
-        }
+    private suspend fun getListOfNotices(typeNo:Int){
+        if(noticeURLList[2]=="") noticeRepository.getNoticePortlet().body()?.let { fillMajorNoticeUrl(it) }
         // Repository 에게 데이터를 요청하고, 응답받은 데이터를 가공하여 list 화하여 반환하는것이 주 목표
 
     }
 
-    private fun fillMainPageUrls(response:ResponseBody) = viewModelScope.launch(Dispatchers.IO){
-        Log.d("vm","fill Main Page URLS")
-        // 로그인 후에 얻을 수 있는 url 들도 등록
+    private fun fillMajorNoticeUrl(response:ResponseBody) = viewModelScope.launch(Dispatchers.IO){
+        // 학과 공지는 로그인 후에 로드 가능
         val document = Jsoup.parse(response.string())
         val majorNoticeList = document.getElementsByClass("m2")
         majorNoticeList.forEach {
@@ -153,6 +92,5 @@ class NoticeViewModel @Inject constructor(
                 noticeURLList[2] = "https://$url"
             }
         }
-        // 페이지 인덱스 작업 필요 (230421)
     }
 }

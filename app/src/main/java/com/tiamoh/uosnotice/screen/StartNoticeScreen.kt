@@ -40,6 +40,7 @@ import com.tiamoh.uosnotice.data.model.Notice
 import com.tiamoh.uosnotice.ui.theme.SemiGrayScreen
 import com.tiamoh.uosnotice.ui.theme.UOSMain
 import com.tiamoh.uosnotice.util.findActivity
+import kotlinx.coroutines.Job
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -109,6 +110,7 @@ fun WebViewForDynamicCrawl(padding:PaddingValues,isStoryOnline:Boolean?, onPageF
         //modifier = Modifier.padding(padding).size(1.dp),
         modifier = Modifier
             .padding(padding).size(1.dp),
+
         factory = { context ->
 
             WebView(context).apply {
@@ -130,6 +132,7 @@ fun WebViewForDynamicCrawl(padding:PaddingValues,isStoryOnline:Boolean?, onPageF
                     }
                 }
                 if(loginState==0) loadUrl(url1)
+
 
             }
         }

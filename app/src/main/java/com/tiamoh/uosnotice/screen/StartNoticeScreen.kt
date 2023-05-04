@@ -267,7 +267,7 @@ fun NoticeListItem(noticeList:List<Notice>?, onItemClick: (String) -> Unit){
                 }
             ){ notice->
                 NoticeListItem(notice = notice){
-                    onItemClick(notice.url)
+                    onItemClick(notice.urlBase)
                 }
             }
         }
@@ -278,7 +278,7 @@ fun NoticeListItem(noticeList:List<Notice>?, onItemClick: (String) -> Unit){
 fun NoticeListItem(notice: Notice, onItemClick: (String) -> Unit) {
     Box(modifier = Modifier
         .clip(RoundedCornerShape(15.dp))
-        .clickable(onClick = { onItemClick(notice.url) })
+        .clickable(onClick = { onItemClick(notice.urlBase) })
         .background(Color.White)
         .height(150.dp)
         .fillMaxWidth()

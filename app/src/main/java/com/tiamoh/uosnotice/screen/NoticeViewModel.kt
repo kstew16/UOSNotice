@@ -10,6 +10,7 @@ import com.tiamoh.uosnotice.data.repository.NoticeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import org.jsoup.Jsoup
 import javax.inject.Inject
@@ -69,16 +70,36 @@ class NoticeViewModel @Inject constructor(
 
 
     fun selectNoticeType(typeNo:Int){
+        loadedNotice.clear()
         _currentType = typeNo
         Log.d("vm","set TypeNo $_currentType type")
-        filterNoticeBy(_filterText)
+        viewModelScope.launch {
+            getListOfNotices(typeNo,0)
+        }
     }
 
     // Todo : 파싱해서 만들기 : 코루틴
-    private suspend fun getListOfNotices(typeNo:Int){
-        if(noticeURLList[2]=="") noticeRepository.getNoticePortlet().body()?.let { fillMajorNoticeUrl(it) }
-        // Repository 에게 데이터를 요청하고, 응답받은 데이터를 가공하여 list 화하여 반환하는것이 주 목표
+    private suspend fun getListOfNotices(typeNo:Int,index:Int){
+        withContext(Dispatchers.IO){
+            if(noticeURLList[2]=="") noticeRepository.getNoticePortlet().body()?.let { fillMajorNoticeUrl(it) }
+            // Repository 에게 데이터를 요청하고, 응답받은 데이터를 가공하여 list 화하여 반환하는것이 주 목표
+            when{
+                (typeNo==0)-> {//모아보기
+                }
+                (typeNo in 1..3)->{//포탈공지
+                    noticeRepository.getPortalNoticePage(noticeURLList[typeNo],index,typeNo).forEach {
+                        loadedNotice.add(it)
+                    }
+                }
+                (typeNo in 4..6)->{//UoStory
 
+                }
+                else->{//에러처리
+
+                }
+            }
+        }
+        withContext(Dispatchers.Default) {filterNoticeBy(_filterText)}
     }
 
     private fun fillMajorNoticeUrl(response:ResponseBody) = viewModelScope.launch(Dispatchers.IO){

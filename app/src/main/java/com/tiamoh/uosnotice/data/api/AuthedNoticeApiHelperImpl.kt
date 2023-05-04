@@ -13,4 +13,8 @@ class AuthedNoticeApiHelperImpl @Inject constructor(
     override suspend fun getNoticePortlet(): Response<ResponseBody>{
         return authedNoticeApiService.getNoticePortlet()
     }
+
+    override suspend fun getPortalNoticePage(address: String): Response<ResponseBody> {
+        return authedNoticeApiService.getPortalNoticePage(address)
+    }
 }

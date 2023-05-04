@@ -10,7 +10,7 @@ import retrofit2.http.Part
 
 interface SessionApiService {
     @Multipart
-    @POST("user/loginProcess.face")
+    @POST("https://portal.uos.ac.kr/user/loginProcess.face")
     suspend fun postAccountInfo(
         @Part id: MultipartBody.Part,
         @Part pw: MultipartBody.Part,

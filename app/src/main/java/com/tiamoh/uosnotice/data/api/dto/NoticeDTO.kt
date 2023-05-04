@@ -1,4 +1,8 @@
 package com.tiamoh.uosnotice.data.api.dto
 
-class NoticeDTO {
+data class NoticeDTO(
+    val title:String,
+    val no:String,
+    val data:String,
+) {
 }

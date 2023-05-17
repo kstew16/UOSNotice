@@ -9,6 +9,7 @@ import com.tiamoh.uosnotice.data.model.Notice
 import com.tiamoh.uosnotice.data.repository.NoticeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -53,21 +54,22 @@ class NoticeViewModel @Inject constructor(
     }
 
 
-   fun filterNoticeBy(searchText:String){
-        Log.d("vm","filter by $searchText, typeNO $_currentType")
-        _filterText = searchText
-        val filteredList = ArrayList<Notice>()
-        if(_filterText == "") filteredList.addAll(loadedNotice)
-        else loadedNotice.forEach { notice->
-            if(notice.title.contains(_filterText.lowercase())||
-                        notice.date.contains(_filterText.lowercase())||
-                        notice.writer.contains(_filterText.lowercase())
-            ) filteredList.add(notice)
+    fun filterNoticeBy(searchText:String)=viewModelScope.launch{
+        withContext(Dispatchers.Default){
+            Log.d("vm","filter by $searchText, typeNO $_currentType")
+            _filterText = searchText
+            val filteredList = ArrayList<Notice>()
+            if(_filterText == "") filteredList.addAll(loadedNotice)
+            else loadedNotice.forEach { notice->
+                if(notice.title.contains(_filterText.lowercase())||
+                    notice.date.contains(_filterText.lowercase())||
+                    notice.writer.contains(_filterText.lowercase())
+                ) filteredList.add(notice)
+            }
+            filteredList.forEach { Log.d("vm",it.title) }
+            _list.postValue(filteredList)
         }
-        filteredList.forEach { Log.d("vm",it.title) }
-        _list.postValue(filteredList)
     }
-
 
     fun selectNoticeType(typeNo:Int){
         loadedNotice.clear()
@@ -80,6 +82,7 @@ class NoticeViewModel @Inject constructor(
 
     // Todo : 파싱해서 만들기 : 코루틴
     private suspend fun getListOfNotices(typeNo:Int,index:Int){
+        // 인터넷 작업이 들어있다! suspend 처리 안 하면 응답받을떄까지 blocking!
         withContext(Dispatchers.IO){
             if(noticeURLList[2]=="") noticeRepository.getNoticePortlet().body()?.let { fillMajorNoticeUrl(it) }
             // Repository 에게 데이터를 요청하고, 응답받은 데이터를 가공하여 list 화하여 반환하는것이 주 목표
@@ -102,7 +105,7 @@ class NoticeViewModel @Inject constructor(
         withContext(Dispatchers.Default) {filterNoticeBy(_filterText)}
     }
 
-    private fun fillMajorNoticeUrl(response:ResponseBody) = viewModelScope.launch(Dispatchers.IO){
+    private fun fillMajorNoticeUrl(response:ResponseBody){
         // 학과 공지는 로그인 후에 로드 가능
         val document = Jsoup.parse(response.string())
         val majorNoticeList = document.getElementsByClass("m2")

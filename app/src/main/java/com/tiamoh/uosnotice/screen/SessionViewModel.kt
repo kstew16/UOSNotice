@@ -8,10 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.tiamoh.uosnotice.data.repository.SessionRepository
 import com.tiamoh.uosnotice.util.FormDataUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import okhttp3.ResponseBody
 import org.jsoup.Jsoup
 import javax.inject.Inject
 
@@ -37,10 +35,10 @@ class SessionViewModel @Inject constructor(
     }
 
     fun putAccountInfo(id:String, pw:String) = viewModelScope.launch(Dispatchers.IO){
+        // 이 스레드는 로그인 답 올 때 까지 기다렸다가 로그인 정보를 바꿔줘야 메인 UI가 반응함. 따라서 suspend 안 넣.
         // Todo: 여기도 로그 지우기
         Log.d("vm","login with $id $pw")
         if(id!=lastLoginID) _failedLoginCount.postValue(0)
-
         val handler = CoroutineExceptionHandler{_,throwable ->
             throwable.message?.let { Log.d("vm", it) }
         }
@@ -67,21 +65,25 @@ class SessionViewModel @Inject constructor(
     }
 
     fun checkSession() = viewModelScope.launch(Dispatchers.IO) {
-        val portalResponse  = withContext(Dispatchers.IO) {
-            sessionRepository.checkPortalSession().body()
-        }
-        val storyResponse = withContext(Dispatchers.IO) {
-            sessionRepository.checkStorySession().body()
-        }
-        Log.d("vm","got response")
-        portalResponse?.let{
+        // 네트워크 작업 둘은 병렬적으로 진행해야 좋다. async 로 진행하게 해 준다.
+        val deferredIsPortalOnline  = async { getPortalResponse(sessionRepository) }
+        val deferredIsStoryOnline = async { getStoryResponse(sessionRepository) }
+        Log.d("vm","checking session")
+        deferredIsStoryOnline.await().let{ _isStoryOnline.postValue(!it) }
+        deferredIsPortalOnline.await().let{ _isPortalOnline.postValue(it) }
+    }
+    private suspend fun getPortalResponse(sessionRepository: SessionRepository):Boolean = withContext(Dispatchers.IO){
+        sessionRepository.checkPortalSession().body()?.let {
             val document = Jsoup.parse(it.string())
             val portlet = document.getElementsByClass("Portlet_tab_normal m1")
-            if(portlet.size==0) _isPortalOnline.postValue(false)
-            else _isPortalOnline.postValue(true)
+            Log.d("vm","got response from portal")
+            if(portlet.size!=0) return@withContext true
         }
-        storyResponse?.let{
-
+        Log.d("vm","portal don't response")
+        return@withContext false
+    }
+    private suspend fun getStoryResponse(sessionRepository: SessionRepository):Boolean = withContext(Dispatchers.IO){
+        sessionRepository.checkStorySession().body()?.let {
             val document = Jsoup.parse(it.string())
             var loginNeed = document.title()!="UOStory 포트폴리오시스템"
             val links = document.getElementsByAttribute("href")
@@ -91,9 +93,11 @@ class SessionViewModel @Inject constructor(
                     break
                 }
             }
-            _isStoryOnline.postValue(!loginNeed)
+            Log.d("vm","got response from story")
+            return@withContext loginNeed
         }
-
+        Log.d("vm","portal don't response")
+        return@withContext false
     }
 
 

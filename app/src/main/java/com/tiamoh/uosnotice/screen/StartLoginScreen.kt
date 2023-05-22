@@ -151,7 +151,8 @@ fun StartLoginScreen(
                     }
                 ,
                 value = password,
-                onValueChange = {
+                onValueChange =  {
+
                     if(isValidPW(it.text) || it.text=="")password = it
                     else Log.d("login","Invalid passwordInput ${it.text}")
                 },

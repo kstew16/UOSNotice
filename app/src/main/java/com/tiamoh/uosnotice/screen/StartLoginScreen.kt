@@ -151,8 +151,9 @@ fun StartLoginScreen(
                     }
                 ,
                 value = password,
-                onValueChange = {
-                    password = it
+                onValueChange =  {
+                    if(isValidPW(it.text) || it.text=="")password = it
+                    else Log.d("login","Invalid passwordInput ${it.text}")
                 },
                 keyboardActions = KeyboardActions(onDone = {
                     keyboardController?.hide()
@@ -215,6 +216,12 @@ fun isValidID(input:String):Boolean{
     val ps = Pattern.compile("^[a-zA-Z\\d]+$")
     return ps.matcher(input).matches()
 }
+
+fun isValidPW(input:String):Boolean{
+    val ps = Pattern.compile("^[(~!@\$^*_{}\\[\\]\\\\:,.?)\\w]+$")
+    return ps.matcher(input).matches()
+}
+
 
 @Composable
 fun RememberAccountCheckbox(onCheckedChange:(Boolean)->Unit,initialChecked:Boolean)

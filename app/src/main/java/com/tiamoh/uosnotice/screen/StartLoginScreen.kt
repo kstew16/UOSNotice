@@ -152,6 +152,7 @@ fun StartLoginScreen(
                 ,
                 value = password,
                 onValueChange =  {
+
                     if(isValidPW(it.text) || it.text=="")password = it
                     else Log.d("login","Invalid passwordInput ${it.text}")
                 },
@@ -221,7 +222,6 @@ fun isValidPW(input:String):Boolean{
     val ps = Pattern.compile("^[(~!@\$^*_{}\\[\\]\\\\:,.?)\\w]+$")
     return ps.matcher(input).matches()
 }
-
 
 @Composable
 fun RememberAccountCheckbox(onCheckedChange:(Boolean)->Unit,initialChecked:Boolean)

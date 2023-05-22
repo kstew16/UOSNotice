@@ -51,6 +51,8 @@ class SessionViewModel @Inject constructor(
                 val formLoginType = FormDataUtil.getBody("loginType","normal")
 
                 val loginResponse = sessionRepository.postAccountInfo(formId,formPw,formLoginType)
+                getPortalResponse(sessionRepository)
+                /*
                 if(loginResponse.headers().size!=7){
                     //_isLoggedIn.postValue(false)
                     Log.d("vm","login failed!")
@@ -62,6 +64,8 @@ class SessionViewModel @Inject constructor(
                     _failedLoginCount.postValue(0)
                     true
                 }
+                 */
+
             }
         )
     }
